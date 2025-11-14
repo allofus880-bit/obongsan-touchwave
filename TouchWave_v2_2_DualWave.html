@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v2.2 — DualWave LightCycle Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        touch-action: none;
+    }
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 🌈 색상 순환값
+let hue = 200;
+let hueSpeed = 0.4;
+
+// 파동 데이터
+let waves = [];
+
+class DualWave {
+    constructor(x, y, baseHue) {
+        this.x = x;
+        this.y = y;
+
+        // Inner Wave (심광)
+        this.innerRadius = 0;
+        this.innerAlpha = 1;
+
+        // Outer Wave (정광)
+        this.outerRadius = 0;
+        this.outerAlpha = 1;
+
+        this.innerSpeed = 2.4;    // Inner 속도
+        this.outerSpeed = 1.8;    // Outer 속도
+
+        this.innerFade = 0.022;   // Inner 사라짐
+        this.outerFade = 0.014;   // Outer 사라짐
+
+        this.baseHue = baseHue;
+    }
+
+    update() {
+        this.innerRadius += this.innerSpeed;
+        this.outerRadius += this.outerSpeed;
+
+        this.innerAlpha -= this.innerFade;
+        this.outerAlpha -= this.outerFade;
+    }
+
+    draw() {
+        // INNER WAVE — 밝은 중심
+        ctx.beginPath();
+        const g1 = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.innerRadius
+        );
+
+        g1.addColorStop(0, `hsla(${this.baseHue}, 90%, 75%, ${this.innerAlpha})`);
+        g1.addColorStop(0.6, `hsla(${this.baseHue}, 95%, 65%, ${this.innerAlpha * 0.5})`);
+        g1.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = g1;
+        ctx.arc(this.x, this.y, this.innerRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // OUTER WAVE — 부드러운 외곽
+        ctx.beginPath();
+        const g2 = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.outerRadius
+        );
+
+        // Outer wave는 더 은은한 파스텔톤
+        g2.addColorStop(0, `hsla(${this.baseHue + 20}, 70%, 55%, ${this.outerAlpha * 0.7})`);
+        g2.addColorStop(0.7, `hsla(${this.baseHue + 20}, 70%, 45%, ${this.outerAlpha * 0.4})`);
+        g2.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = g2;
+        ctx.arc(this.x, this.y, this.outerRadius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// 파동 생성
+function spawnWave(e) {
+    let x, y;
+    if (e.touches) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
+
+    waves.push(new DualWave(x, y, hue));
+}
+
+window.addEventListener("pointerdown", spawnWave);
+window.addEventListener("touchstart", spawnWave);
+
+// 애니메이션
+function animate() {
+    requestAnimationFrame(animate);
+
+    // 잔상 자연 제거
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 색상 순환
+    hue += hueSpeed;
+    if (hue > 360) hue = 0;
+
+    // 파동 유지
+    waves = waves.filter(w => w.innerAlpha > 0 || w.outerAlpha > 0);
+
+    // 두 파동 렌더링
+    waves.forEach(w => {
+        w.update();
+        w.draw();
+    });
+}
+
+animate();
+</script>
+
+</body>
+</html>
