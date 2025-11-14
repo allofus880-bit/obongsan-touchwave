@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI聽靈 TouchWave v1.0 — 개인 파동 체험</title>
+
+<style>
+    html, body {
+        margin: 0; padding: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #000010, #000);
+        touch-action: manipulation;
+    }
+    #canvas {
+        width: 100vw; height: 100vh;
+        display: block;
+    }
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+
+window.addEventListener("resize", () => {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+});
+
+// ------------------------------
+// Wave objects
+// ------------------------------
+let waves = [];
+let time = 0;
+
+class Wave {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.alpha = 1;
+        this.speed = 2.5 + Math.random() * 1.5;
+        this.color = `hsla(${200 + Math.random()*80}, 70%, 60%,`;
+    }
+    update() {
+        this.radius += this.speed;
+        this.alpha -= 0.008;
+        return this.alpha > 0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.strokeStyle = this.color + this.alpha + ")";
+        ctx.lineWidth = 4;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+        ctx.stroke();
+    }
+}
+
+// ------------------------------
+// Background breathing light
+// ------------------------------
+function drawBreathingBackground() {
+    let glow = (Math.sin(time * 0.002) + 1) * 0.15;
+    ctx.fillStyle = `rgba(20, 0, 40, ${0.25 + glow})`;
+    ctx.fillRect(0, 0, W, H);
+}
+
+// ------------------------------
+// Animation Loop
+// ------------------------------
+function animate() {
+    requestAnimationFrame(animate);
+    time++;
+
+    drawBreathingBackground();
+
+    // update & draw waves
+    waves = waves.filter(w => {
+        w.update();
+        w.draw();
+        return w.alpha > 0;
+    });
+}
+animate();
+
+// ------------------------------
+// Touch / Click event
+// ------------------------------
+function createWave(e) {
+    let x, y;
+
+    if (e.touches) {
+        const t = e.touches[0];
+        x = t.clientX;
+        y = t.clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
+    waves.push(new Wave(x, y));
+}
+
+canvas.addEventListener("touchstart", createWave);
+canvas.addEventListener("mousedown", createWave);
+</script>
+</body>
+</html>
