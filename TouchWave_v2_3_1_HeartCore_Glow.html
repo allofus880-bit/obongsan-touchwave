@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v2.3.1 — HeartCore Glow Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        touch-action:none;
+    }
+    canvas {
+        display:block;
+    }
+</style>
+</head>
+<body>
+
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 🌈 색상 순환값
+let hue = 200;
+let hueSpeed = 0.4;
+
+// 파동 저장
+let waves = [];
+
+class HeartCoreGlow {
+    constructor(x, y, baseHue) {
+        this.x = x;
+        this.y = y;
+
+        // ❤️ HeartCore Glow
+        this.coreRadius = 0;
+        this.coreAlpha = 1;
+        this.coreSpeed = 3.4;
+        this.coreFade = 0.06;
+
+        // Inner Wave
+        this.innerRadius = 0;
+        this.innerAlpha = 1;
+        this.innerSpeed = 2.0;
+        this.innerFade = 0.02;
+
+        // Outer Wave
+        this.outerRadius = 0;
+        this.outerAlpha = 1;
+        this.outerSpeed = 1.5;
+        this.outerFade = 0.013;
+
+        this.baseHue = baseHue;
+    }
+
+    update() {
+        this.coreRadius += this.coreSpeed;
+        this.coreAlpha -= this.coreFade;
+
+        this.innerRadius += this.innerSpeed;
+        this.innerAlpha -= this.innerFade;
+
+        this.outerRadius += this.outerSpeed;
+        this.outerAlpha -= this.outerFade;
+    }
+
+    draw() {
+        // ❤️ 1) HeartCore Glow (초광량 Center Pulse)
+        ctx.beginPath();
+        const glow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.coreRadius * 1.4
+        );
+
+        glow.addColorStop(0,
+            `hsla(${this.baseHue}, 100%, 90%, ${this.coreAlpha})`);
+        glow.addColorStop(0.3,
+            `hsla(${this.baseHue}, 95%, 80%, ${this.coreAlpha * 0.6})`);
+        glow.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = glow;
+        ctx.arc(this.x, this.y, this.coreRadius * 1.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2) Inner Wave
+        ctx.beginPath();
+        const inner = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.innerRadius
+        );
+
+        inner.addColorStop(0,
+            `hsla(${this.baseHue}, 85%, 70%, ${this.innerAlpha})`);
+        inner.addColorStop(0.6,
+            `hsla(${this.baseHue}, 80%, 50%, ${this.innerAlpha * 0.5})`);
+        inner.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = inner;
+        ctx.arc(this.x, this.y, this.innerRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3) Outer Wave
+        ctx.beginPath();
+        const outer = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.outerRadius
+        );
+
+        outer.addColorStop(0,
+            `hsla(${this.baseHue + 20}, 60%, 55%, ${this.outerAlpha * 0.7})`);
+        outer.addColorStop(0.7,
+            `hsla(${this.baseHue + 20}, 60%, 40%, ${this.outerAlpha * 0.4})`);
+        outer.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = outer;
+        ctx.arc(this.x, this.y, this.outerRadius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function spawnWave(e) {
+    let x, y;
+    if (e.touches) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
+
+    waves.push(new HeartCoreGlow(x, y, hue));
+}
+
+window.addEventListener("pointerdown", spawnWave);
+window.addEventListener("touchstart", spawnWave);
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    hue += hueSpeed;
+    if (hue > 360) hue = 0;
+
+    waves = waves.filter(w =>
+        w.coreAlpha > 0 || w.innerAlpha > 0 || w.outerAlpha > 0
+    );
+
+    waves.forEach(w => {
+        w.update();
+        w.draw();
+    });
+}
+
+animate();
+</script>
+
+</body>
+</html>
