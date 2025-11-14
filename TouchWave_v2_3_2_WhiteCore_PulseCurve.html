@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v2.3.2 — White-Core Pulse Curve Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        touch-action:none;
+    }
+    canvas { display:block; }
+</style>
+</head>
+<body>
+
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 색상 순환
+let hue = 180;
+let hueSpeed = 0.5;
+
+let waves = [];
+
+// White-Core Pulse + Speed Curve
+class WhiteCorePulse {
+    constructor(x, y, baseHue) {
+        this.x = x;
+        this.y = y;
+        this.baseHue = baseHue;
+
+        // 초기 반경
+        this.radius = 0;
+
+        // 감속을 위한 속도
+        this.speed = 4.0;
+
+        // 감쇠율
+        this.alpha = 1.0;
+        this.fade = 0.015;
+    }
+
+    update() {
+        // Pulse Curve: 초반 빠르고 후반 느리게
+        this.radius += this.speed;
+        this.speed *= 0.92; // 후반 감속
+
+        this.alpha -= this.fade;
+    }
+
+    draw() {
+        // (1) White-Core 안쪽 0~20px
+        ctx.beginPath();
+        const whiteCore = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, Math.max(20, this.radius * 0.25)
+        );
+
+        whiteCore.addColorStop(0, `rgba(255,255,255, ${this.alpha})`);
+        whiteCore.addColorStop(0.5, `hsla(${this.baseHue}, 90%, 85%, ${this.alpha * 0.6})`);
+        whiteCore.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = whiteCore;
+        ctx.arc(this.x, this.y, this.radius * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // (2) Outer Glow — 넓게 퍼지는 빛
+        ctx.beginPath();
+        const outerGlow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.radius * 1.7
+        );
+
+        outerGlow.addColorStop(0,
+            `hsla(${this.baseHue + 10}, 80%, 65%, ${this.alpha * 0.5})`);
+        outerGlow.addColorStop(0.9,
+            `hsla(${this.baseHue + 10}, 60%, 40%, ${this.alpha * 0.15})`);
+        outerGlow.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = outerGlow;
+        ctx.arc(this.x, this.y, this.radius * 1.7, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function spawnWave(e) {
+    let x, y;
+    if (e.touches) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
+
+    waves.push(new WhiteCorePulse(x, y, hue));
+}
+
+window.addEventListener("pointerdown", spawnWave);
+window.addEventListener("touchstart", spawnWave);
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // 잔상 블렌딩
+    ctx.fillStyle = "rgba(0,0,0,0.16)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    hue += hueSpeed;
+    if (hue > 360) hue = 0;
+
+    waves = waves.filter(w => w.alpha > 0);
+
+    waves.forEach(w => {
+        w.update();
+        w.draw();
+    });
+}
+
+animate();
+</script>
+
+</body>
+</html>
