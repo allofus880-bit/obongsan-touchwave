@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v2.3.3 — Plasma-Core Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        touch-action:none;
+    }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let hue = 180;
+let hueSpeed = 0.45;
+
+let waves = [];
+
+class PlasmaCorePulse {
+    constructor(x, y, baseHue) {
+        this.x = x;
+        this.y = y;
+
+        this.baseHue = baseHue;
+
+        this.radius = 0;
+        this.speed = 4.2;
+
+        this.alpha = 1.0;
+        this.fade = 0.014;
+
+        this.flicker = Math.random() * 0.4 + 0.6;
+    }
+
+    update() {
+        this.radius += this.speed;
+        this.speed *= 0.90;
+        this.alpha -= this.fade;
+
+        this.flicker = 0.7 + Math.sin(Date.now() * 0.012) * 0.3;
+    }
+
+    draw() {
+        // (1) Plasma Core (White → Color)
+        ctx.beginPath();
+        const core = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, Math.max(30, this.radius * 0.35)
+        );
+
+        core.addColorStop(0, `rgba(255,255,255,${this.alpha * this.flicker})`);
+        core.addColorStop(0.3, `hsla(${this.baseHue},100%,85%,${this.alpha * 0.7})`);
+        core.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.fillStyle = core;
+        ctx.arc(this.x, this.y, this.radius * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // (2) Deep Glow (확장)
+        ctx.beginPath();
+        const glow = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.radius * 1.9
+        );
+
+        glow.addColorStop(0, `hsla(${this.baseHue+15},80%,70%,${this.alpha * 0.35})`);
+        glow.addColorStop(0.8, `hsla(${this.baseHue+20},60%,45%,${this.alpha * 0.15})`);
+        glow.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.fillStyle = glow;
+        ctx.arc(this.x, this.y, this.radius * 1.9, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function spawnWave(e) {
+    let x, y;
+    if (e.touches) { x = e.touches[0].clientX; y = e.touches[0].clientY; }
+    else { x = e.clientX; y = e.clientY; }
+
+    waves.push(new PlasmaCorePulse(x, y, hue));
+}
+
+window.addEventListener("pointerdown", spawnWave);
+window.addEventListener("touchstart", spawnWave);
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    hue += hueSpeed;
+    if (hue > 360) hue = 0;
+
+    waves = waves.filter(w => w.alpha > 0);
+
+    waves.forEach(w => {
+        w.update();
+        w.draw();
+    });
+}
+
+animate();
+</script>
+
+</body>
+</html>
