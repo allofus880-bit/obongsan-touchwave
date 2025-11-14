@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v2.3 — HeartCore Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        touch-action: none;
+    }
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 🌈 색상 순환값
+let hue = 200;
+let hueSpeed = 0.4;
+
+// 파동 저장
+let waves = [];
+
+class HeartCoreWave {
+    constructor(x, y, baseHue) {
+        this.x = x;
+        this.y = y;
+
+        // ❤️ HeartCore
+        this.coreRadius = 0;
+        this.coreAlpha = 1;
+        this.coreSpeed = 3.2;
+        this.coreFade = 0.055;
+
+        // Inner
+        this.innerRadius = 0;
+        this.innerAlpha = 1;
+        this.innerSpeed = 2.1;
+        this.innerFade = 0.02;
+
+        // Outer
+        this.outerRadius = 0;
+        this.outerAlpha = 1;
+        this.outerSpeed = 1.5;
+        this.outerFade = 0.013;
+
+        this.baseHue = baseHue;
+    }
+
+    update() {
+        // Core
+        this.coreRadius += this.coreSpeed;
+        this.coreAlpha -= this.coreFade;
+
+        // Inner
+        this.innerRadius += this.innerSpeed;
+        this.innerAlpha -= this.innerFade;
+
+        // Outer
+        this.outerRadius += this.outerSpeed;
+        this.outerAlpha -= this.outerFade;
+    }
+
+    draw() {
+        // ❤️ 1) HeartCore (가장 강한 빛)
+        ctx.beginPath();
+        const g0 = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.coreRadius
+        );
+
+        g0.addColorStop(0, `hsla(${this.baseHue}, 100%, 80%, ${this.coreAlpha})`);
+        g0.addColorStop(0.5, `hsla(${this.baseHue}, 90%, 65%, ${this.coreAlpha * 0.5})`);
+        g0.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = g0;
+        ctx.arc(this.x, this.y, this.coreRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2) Inner Wave
+        ctx.beginPath();
+        const g1 = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.innerRadius
+        );
+
+        g1.addColorStop(0, `hsla(${this.baseHue}, 85%, 70%, ${this.innerAlpha})`);
+        g1.addColorStop(0.6, `hsla(${this.baseHue}, 80%, 50%, ${this.innerAlpha * 0.5})`);
+        g1.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = g1;
+        ctx.arc(this.x, this.y, this.innerRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3) Outer Wave
+        ctx.beginPath();
+        const g2 = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.outerRadius
+        );
+
+        g2.addColorStop(0, `hsla(${this.baseHue + 20}, 65%, 55%, ${this.outerAlpha * 0.7})`);
+        g2.addColorStop(0.7, `hsla(${this.baseHue + 20}, 65%, 40%, ${this.outerAlpha * 0.4})`);
+        g2.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = g2;
+        ctx.arc(this.x, this.y, this.outerRadius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// 터치/클릭 시 파동 생성
+function spawnWave(e) {
+    let x, y;
+    if (e.touches) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
+
+    waves.push(new HeartCoreWave(x, y, hue));
+}
+
+window.addEventListener("pointerdown", spawnWave);
+window.addEventListener("touchstart", spawnWave);
+
+// 애니메이션
+function animate() {
+    requestAnimationFrame(animate);
+
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    hue += hueSpeed;
+    if (hue > 360) hue = 0;
+
+    waves = waves.filter(w =>
+        w.coreAlpha > 0 ||
+        w.innerAlpha > 0 ||
+        w.outerAlpha > 0
+    );
+
+    waves.forEach(w => {
+        w.update();
+        w.draw();
+    });
+}
+
+animate();
+</script>
+
+</body>
+</html>
