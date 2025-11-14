@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v2.1 — 光循環 Color Shift Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        touch-action: none;
+    }
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 🌈 색상 순환값
+let hue = 200;        // 초기 청색 계열
+let hueSpeed = 0.4;   // 색상 변화 속도
+
+// 🌟 파동 구조
+let waves = [];
+
+class Wave {
+    constructor(x, y, baseHue) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.alpha = 1;
+        this.speed = 2.2;          
+        this.fadeSpeed = 0.018;    
+        this.baseHue = baseHue;    // 생성 당시의 색상 저장
+    }
+
+    update() {
+        this.radius += this.speed;
+        this.alpha -= this.fadeSpeed;
+    }
+
+    draw() {
+        ctx.beginPath();
+
+        const g = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.radius
+        );
+
+        const c1 = `hsla(${this.baseHue}, 80%, 65%, ${this.alpha})`;
+        const c2 = `hsla(${this.baseHue}, 80%, 55%, ${this.alpha * 0.7})`;
+
+        g.addColorStop(0, c1);
+        g.addColorStop(0.5, c2);
+        g.addColorStop(1, `rgba(0,0,0,0)`);
+
+        ctx.fillStyle = g;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// 터치/클릭
+function spawnWave(e) {
+    let x, y;
+    if (e.touches) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+    } else {
+        x = e.clientX;
+        y = e.clientY;
+    }
+
+    // 현재 색상으로 파동 생성
+    waves.push(new Wave(x, y, hue));
+}
+
+window.addEventListener("pointerdown", spawnWave);
+window.addEventListener("touchstart", spawnWave);
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // 배경 자연스러운 잔광 제거
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 색상 순환
+    hue += hueSpeed;
+    if (hue > 360) hue = 0;
+
+    // 파동 업데이트 & 랜더링
+    waves = waves.filter(w => w.alpha > 0);
+    waves.forEach(w => {
+        w.update();
+        w.draw();
+    });
+}
+
+animate();
+</script>
+
+</body>
+</html>
