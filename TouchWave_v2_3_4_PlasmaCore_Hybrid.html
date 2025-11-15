@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TouchWave v2.3.4 — PlasmaCore Hybrid</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    touch-action: none;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="touchwave"></canvas>
+
+<script>
+const canvas = document.getElementById("touchwave");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener("resize", resize);
+
+let waves = [];
+
+class Wave {
+  constructor(x, y) {
+    this.x = x; 
+    this.y = y;
+    this.radius = 0;
+    this.alpha = 1;
+    this.speed = 0.55 + Math.random()*0.18;         // Hybrid: 속도 안정화
+    this.lineWidth = 3.2 + Math.random()*0.8;       // Hybrid: 중간 굵기
+    this.plasmaShift = Math.random() * 360;         // Plasma 색상 변화용
+  }
+
+  update() {
+    this.radius += this.speed * 3.2;                // Hybrid: 파동 확장
+    this.alpha -= 0.010;                            // FadeCurve 안정적 감소
+    this.plasmaShift += 1.2;                        // Plasma 색상 회전값 증가
+    return this.alpha > 0;
+  }
+
+  draw() {
+    const grd = ctx.createRadialGradient(
+      this.x, this.y, this.radius * 0.2,
+      this.x, this.y, this.radius
+    );
+
+    // Hybrid PlasmaCore 색상 조합
+    const color1 = `hsla(${this.plasmaShift}, 100%, 68%, ${this.alpha})`;   // Plasma 외곽
+    const color2 = `rgba(255,255,255,${this.alpha * 0.75})`;                 // WhiteCore
+    const color3 = `rgba(150,180,255,${this.alpha * 0.45})`;                 // Glow Layer
+
+    grd.addColorStop(0.0, color2);
+    grd.addColorStop(0.45, color3);
+    grd.addColorStop(1.0, color1);
+
+    ctx.beginPath();
+    ctx.lineWidth = this.lineWidth;
+    ctx.strokeStyle = grd;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  ctx.fillStyle = "rgba(0,0,0,0.18)";     // Hybrid: 잔상 부드럽게 남김
+  ctx.fillRect(0,0,w,h);
+
+  waves = waves.filter(w => w.update());
+  waves.forEach(w => w.draw());
+}
+
+animate();
+
+// 화면 터치/클릭 시 Plasma Hybrid Wave 생성
+function emit(e) {
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  for(let i=0;i<2;i++) waves.push(new Wave(x, y));
+}
+
+window.addEventListener("pointerdown", emit);
+window.addEventListener("touchstart", emit);
+</script>
+
+</body>
+</html>
