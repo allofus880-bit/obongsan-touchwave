@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TouchWave v3.6 — UltraShell</title>
+<style>
+    html,body{
+        margin:0;overflow:hidden;
+        background:radial-gradient(circle at center,#0b0f1a,#000);
+        touch-action:none;
+    }
+    canvas{display:block;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
+let w,h; 
+
+function resize(){
+    w=canvas.width=window.innerWidth;
+    h=canvas.height=window.innerHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+const ripples=[];
+function addRipple(x,y){
+    const r={
+        x,y,
+        t:0,
+        max:Math.max(w,h)*0.8,
+        speed:0.035
+    };
+    ripples.push(r);
+}
+
+window.addEventListener("pointerdown",e=>{
+    addRipple(e.clientX,e.clientY);
+});
+
+function draw(){
+    ctx.clearRect(0,0,w,h);
+
+    // UltraShell 3-layer Glow Field
+    const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,h*0.9);
+    g.addColorStop(0,"rgba(180,200,255,0.12)");
+    g.addColorStop(0.6,"rgba(120,150,255,0.08)");
+    g.addColorStop(1,"rgba(60,80,150,0.02)");
+    ctx.fillStyle=g;
+    ctx.fillRect(0,0,w,h);
+
+    for(let r of ripples){
+        r.t+=r.speed;
+
+        const radius=r.t*r.max;
+        const alpha=Math.max(0,1-r.t);
+
+        // Outer Shell
+        ctx.beginPath();
+        ctx.arc(r.x,r.y,radius*1.2,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(180,220,255,${alpha*0.20})`;
+        ctx.lineWidth=radius*0.015;
+        ctx.stroke();
+
+        // Mid Shell
+        ctx.beginPath();
+        ctx.arc(r.x,r.y,radius,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(120,180,255,${alpha*0.35})`;
+        ctx.lineWidth=radius*0.012;
+        ctx.stroke();
+
+        // Inner Shell
+        ctx.beginPath();
+        ctx.arc(r.x,r.y,radius*0.75,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(255,255,255,${alpha*0.45})`;
+        ctx.lineWidth=radius*0.009;
+        ctx.stroke();
+    }
+
+    // remove finished
+    for(let i=ripples.length-1;i>=0;i--){
+        if(ripples[i].t>=1) ripples.splice(i,1);
+    }
+
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
