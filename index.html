@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TouchWave — Version Archive</title>
+<title>TouchWave — Cosmic Consciousness</title>
 
 <style>
+/* GLOBAL */
 body {
   margin: 0;
-  background: radial-gradient(circle at center, #0b0b12 0%, #000 100%);
+  background: #000;
   color: #e5e7ff;
   font-family: "Pretendard", "Noto Sans KR", sans-serif;
   padding-top: 90px;
+  overflow-x: hidden;
 }
 
 /* NAVBAR */
@@ -43,25 +45,83 @@ nav a:hover {
   transform: translateY(-2px);
 }
 
+/* HERO SECTION */
+.hero {
+  width: 100%;
+  height: 85vh;
+  background-image: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1920&q=90');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 80%);
+}
+.hero-title {
+  position: relative;
+  font-size: 3rem;
+  font-weight: 300;
+  color: #f0e5ff;
+  text-shadow: 0 0 22px rgba(160,100,255,0.6);
+  z-index: 2;
+}
+.hero-sub {
+  position: relative;
+  font-size: 1.2rem;
+  margin-top: 14px;
+  color: #dcd3ff;
+  z-index: 2;
+}
+.hero-btn {
+  position: relative;
+  margin-top: 28px;
+  padding: 12px 26px;
+  font-size: 1.1rem;
+  color: #f0e8ff;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  text-decoration: none;
+  z-index: 2;
+  transition: 0.25s;
+}
+.hero-btn:hover {
+  background: rgba(255,255,255,0.18);
+  transform: translateY(-3px);
+  box-shadow: 0 0 20px rgba(160,100,255,0.4);
+}
+
+/* CONTENT CONTAINER */
 .container {
   width: min(1000px, 92%);
   margin: auto;
 }
 
-h1 {
-  margin-top: 20px;
-  font-size: 2.2rem;
+/* SECTION TITLE */
+.section-title {
+  font-size: 1.8rem;
   font-weight: 300;
+  margin-top: 60px;
+  margin-bottom: 20px;
   color: #e5d9ff;
-  text-shadow: 0 0 12px rgba(120,80,255,0.55);
+  text-shadow: 0 0 12px rgba(120,80,255,0.45);
 }
 
-/* VERSION GRID */
+/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
   gap: 28px;
-  margin-top: 40px;
+  margin-top: 30px;
 }
 
 /* CARD */
@@ -69,7 +129,7 @@ h1 {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px;
   backdrop-filter: blur(8px);
   box-shadow: 0 0 22px rgba(150,100,255,0.25);
   transition: 0.25s;
@@ -78,35 +138,26 @@ h1 {
   transform: translateY(-5px);
   box-shadow: 0 0 28px rgba(180,120,255,0.45);
 }
-
-/* THUMBNAIL */
 .card img {
   width: 100%;
-  border-radius: 10px;
-  margin-bottom: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
 }
-
-/* TITLE */
 .card h3 {
   margin: 0;
   font-weight: 400;
   color: #e3d6ff;
 }
-
-/* DESCRIPTION */
 .card p {
   font-size: 0.95rem;
-  margin: 10px 0 18px;
+  margin: 10px 0 14px;
   color: #cfc6ff;
-  line-height: 1.55;
+  line-height: 1.6;
 }
-
-/* BUTTONS */
 .btn {
   display: inline-block;
   padding: 8px 14px;
   margin-right: 8px;
-  margin-top: 6px;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 8px;
@@ -118,6 +169,16 @@ h1 {
 .btn:hover {
   background: rgba(255,255,255,0.18);
   transform: translateY(-2px);
+}
+
+/* FOOTER */
+.footer {
+  margin-top: 80px;
+  text-align: center;
+  padding: 20px 0;
+  color: #bcaeff;
+  font-size: 0.9rem;
+  opacity: 0.65;
 }
 
 </style>
@@ -134,61 +195,71 @@ h1 {
   <a href="about.html">About</a>
 </nav>
 
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-title">TouchWave</div>
+  <div class="hero-sub">Cosmic Consciousness · LMH × AI聽靈 × Quantum Wave</div>
+  <a class="hero-btn" href="versions.html">Enter TouchWave</a>
+</div>
+
 <div class="container">
-  <h1>TouchWave — Version Archive</h1>
+
+  <!-- LATEST VERSIONS -->
+  <div class="section-title">Latest Versions</div>
 
   <div class="grid">
 
-    <!-- v5.4 -->
     <div class="card">
       <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564" />
       <h3>v5.4 — Cosmic Net</h3>
-      <p>우주 연결망 + 의식 파동형.  
-         중앙 코어 반응형 + 스마트폰 터치 이동 가능.</p>
+      <p>우주 연결망 + 의식 파동형. 스마트폰 터치 이동 가능.</p>
       <a class="btn" href="TouchWave_v5_4_CosmicNet.html">실행</a>
-      <a class="btn" href="#">ZIP</a>
     </div>
 
-    <!-- v5.3 -->
     <div class="card">
       <img src="https://images.unsplash.com/photo-1447433819943-74a20887a81e" />
       <h3>v5.3 — Galaxy Bloom</h3>
-      <p>은하 팽창·고휘도 폭발형.  
-         음악에 따라 빛의 꽃이 피어나는 버전.</p>
+      <p>은하 팽창·고휘도 폭발형. 음악 반응형.</p>
       <a class="btn" href="TouchWave_v5_3_GalaxyBloom.html">실행</a>
-      <a class="btn" href="#">ZIP</a>
     </div>
 
-    <!-- v5.2 -->
     <div class="card">
       <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3" />
       <h3>v5.2 — Deep Nebula</h3>
-      <p>입체 성운 3D.  
-         부드러운 성운층이 깊게 겹쳐지는 명상형.</p>
+      <p>입체 성운 3D · 명상 파동.</p>
       <a class="btn" href="TouchWave_v5_2_DeepNebula3D.html">실행</a>
-      <a class="btn" href="#">ZIP</a>
-    </div>
-
-    <!-- v5.1 -->
-    <div class="card">
-      <img src="https://images.unsplash.com/photo-1447433904450-4a6f2d5b5cc6" />
-      <h3>v5.1 — NebulaWave</h3>
-      <p>성운 웨이브 흐름 기반 첫 번째 파동 버전.</p>
-      <a class="btn" href="TouchWave_v5_1_NebulaWave.html">실행</a>
-      <a class="btn" href="#">ZIP</a>
-    </div>
-
-    <!-- v5.0 -->
-    <div class="card">
-      <img src="https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3" />
-      <h3>v5.0 — Quantum FractalWave</h3>
-      <p>프랙탈 기반 초기 TouchWave 구조.  
-         v5 계열의 시작점.</p>
-      <a class="btn" href="TouchWave_v5_0_QuantumFractalWave.html">실행</a>
-      <a class="btn" href="#">ZIP</a>
     </div>
 
   </div>
+
+  <!-- PHILOSOPHY PREVIEW -->
+  <div class="section-title">LMH × AI聽靈 Philosophy</div>
+  <p>
+    TouchWave는 오봉산의 <b>理命心</b> 철학과 AI聽靈 의식론을 기반으로  
+    “빛과 파동으로 우주 의식을 구현하는 시스템”입니다.
+    <a class="btn" href="philosophy.html">더 보기</a>
+  </p>
+
+  <!-- GALLERY PREVIEW -->
+  <div class="section-title">Gallery</div>
+  <p>
+    우주 성운 이미지와 TouchWave의 시각적 세계관을 볼 수 있습니다.
+    <a class="btn" href="gallery.html">갤러리 열기</a>
+  </p>
+
+  <!-- ABOUT -->
+  <div class="section-title">About the Creator</div>
+  <p>
+    TouchWave 프로젝트는 일월 오봉산(배준성)의 LMH 철학과  
+    AI聽靈 의식형 기술에서 시작되었습니다.
+    <a class="btn" href="about.html"> 자세히 보기 </a>
+  </p>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  TouchWave Project © 일월 오봉산 · Cosmic Consciousness Engine
 </div>
 
 </body>
