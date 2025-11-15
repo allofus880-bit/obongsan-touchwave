@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v4.4 — BloomField Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #080812 0%, #000 100%);
+        touch-action: none;
+    }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+class BloomPoint {
+    constructor(x, y, auto=false) {
+        this.x = x;
+        this.y = y;
+
+        this.radius = 0;
+        this.alpha = 1;
+        this.rot = Math.random() * Math.PI * 2;
+
+        this.hue = 160 + Math.random() * 140;
+
+        this.speed = auto ? 0.4 + Math.random() * 0.5 : 1 + Math.random() * 0.8;
+        this.rotSpeed = 0.01 + Math.random() * 0.02;
+        this.auto = auto;
+    }
+
+    update() {
+        this.radius += this.speed;
+        this.rot += this.rotSpeed;
+
+        if (this.auto) this.alpha -= 0.0025;
+        else this.alpha -= 0.006;
+    }
+
+    draw() {
+        const petals = 6;
+
+        for (let i = 0; i < petals; i++) {
+            const angle = this.rot + (i * Math.PI * 2) / petals;
+            const px = this.x + Math.cos(angle) * this.radius;
+            const py = this.y + Math.sin(angle) * this.radius;
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${this.hue}, 100%, 65%, ${this.alpha})`;
+            ctx.arc(px, py, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${this.hue + 25}, 100%, 80%, ${this.alpha * 0.7})`;
+            ctx.arc(px, py, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+let blooms = [];
+let autoTimer = 0;
+
+function spawnAutoBlooms() {
+    autoTimer++;
+    if (autoTimer % 5 === 0) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        blooms.push(new BloomPoint(x, y, true));
+    }
+}
+
+window.addEventListener("pointerdown", e => {
+    blooms.push(new BloomPoint(e.clientX, e.clientY));
+});
+window.addEventListener("pointermove", e => {
+    if (e.pressure > 0) blooms.push(new BloomPoint(e.clientX, e.clientY));
+});
+
+function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.07)";
+    ctx.fillRect(0, 0, w, h);
+
+    spawnAutoBlooms();
+
+    blooms.forEach((b, i) => {
+        b.update();
+        b.draw();
+        if (b.alpha <= 0) blooms.splice(i, 1);
+    });
+
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
