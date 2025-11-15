@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TouchWave Home v4.3 — Full Navigation Edition</title>
+<title>TouchWave Home v4.4 — Core Glow Header Edition</title>
 
 <style>
   html, body {
@@ -14,25 +14,66 @@
     color: #d8f7ff;
   }
 
-  /* 네비게이션 */
-  nav {
-    position: absolute;
-    top: 20px;
+  /* -----------------------------------
+     Header v4.4 — Light-Core Glow 헤더
+  ----------------------------------- */
+  .tw-header {
+    position: fixed;
+    top: 0;
     width: 100%;
-    text-align: center;
-    z-index: 20;
+    padding: 18px 40px;
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 26px;
-    padding: 0 10px;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+  }
+
+  /* 로고 */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #dff8ff;
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+
+  /* Glow Core ("◎"를 직접 구현) */
+  .core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        #88bbff 0%,
+        #5599ff 40%,
+        #2244aa 80%
+    );
+    box-shadow:
+      0 0 8px #88bbff,
+      0 0 20px #5599ff,
+      0 0 40px #3377ff;
+    animation: corePulse 3.5s infinite ease-in-out;
+  }
+
+  /* Core Pulse Animation */
+  @keyframes corePulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: 0.85; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Navigation */
+  nav {
+    display: flex;
+    gap: 28px;
   }
   nav a {
-    color: #dff8ff;
     text-decoration: none;
-    font-size: 18px;
-    white-space: nowrap;
-    opacity: 0.75;
+    color: #c8f4ff;
+    font-size: 17px;
+    opacity: .75;
   }
   nav a:hover {
     opacity: 1;
@@ -42,7 +83,7 @@
   /* 중앙 텍스트 */
   .center-title {
     position: absolute;
-    top: 42%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 42px;
@@ -63,14 +104,23 @@
 
 <body>
 
-<!-- 네비게이션 -->
-<nav>
-  <a href="index.html">Home</a>
-  <a href="versions.html">Versions</a>
-  <a href="philosophy.html">Philosophy</a>
-  <a href="gallery.html">Gallery</a>
-  <a href="about.html">About</a>
-</nav>
+<!-- -------------------------------
+     HEADER v4.4
+-------------------------------- -->
+<header class="tw-header">
+  <div class="logo">
+    <div class="core"></div>
+    <span>TouchWave</span>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="versions.html">Versions</a>
+    <a href="philosophy.html">Philosophy</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
 
 <!-- 중앙 타이틀 -->
 <div class="center-title">
