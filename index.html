@@ -1,11 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta charset="utf-8">
-<title>TouchWave Official Home</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave — Version Archive</title>
+
+<style>
+body {
+  margin: 0;
+  background: radial-gradient(circle at center, #0b0b12 0%, #000 100%);
+  color: #e5e7ff;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  padding-top: 90px;
+}
+
+/* NAVBAR */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 14px 0;
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.33);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+nav a {
+  color: #e8dcff;
+  text-decoration: none;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: 0.25s;
+}
+nav a:hover {
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 10px rgba(130,80,255,0.45);
+  transform: translateY(-2px);
+}
+
+.container {
+  width: min(1000px, 92%);
+  margin: auto;
+}
+
+h1 {
+  margin-top: 20px;
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: #e5d9ff;
+  text-shadow: 0 0 12px rgba(120,80,255,0.55);
+}
+
+/* VERSION GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+  gap: 28px;
+  margin-top: 40px;
+}
+
+/* CARD */
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 18px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 22px rgba(150,100,255,0.25);
+  transition: 0.25s;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 28px rgba(180,120,255,0.45);
+}
+
+/* THUMBNAIL */
+.card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+/* TITLE */
+.card h3 {
+  margin: 0;
+  font-weight: 400;
+  color: #e3d6ff;
+}
+
+/* DESCRIPTION */
+.card p {
+  font-size: 0.95rem;
+  margin: 10px 0 18px;
+  color: #cfc6ff;
+  line-height: 1.55;
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-block;
+  padding: 8px 14px;
+  margin-right: 8px;
+  margin-top: 6px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #e5e7ff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: 0.25s;
+}
+.btn:hover {
+  background: rgba(255,255,255,0.18);
+  transform: translateY(-2px);
+}
+
+</style>
 </head>
+
 <body>
-<h1>TouchWave Home</h1>
-<p>정식 메인 페이지는 다음 단계에서 만들어집니다.</p>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html">Home</a>
+  <a href="versions.html">Versions</a>
+  <a href="philosophy.html">Philosophy</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="about.html">About</a>
+</nav>
+
+<div class="container">
+  <h1>TouchWave — Version Archive</h1>
+
+  <div class="grid">
+
+    <!-- v5.4 -->
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564" />
+      <h3>v5.4 — Cosmic Net</h3>
+      <p>우주 연결망 + 의식 파동형.  
+         중앙 코어 반응형 + 스마트폰 터치 이동 가능.</p>
+      <a class="btn" href="TouchWave_v5_4_CosmicNet.html">실행</a>
+      <a class="btn" href="#">ZIP</a>
+    </div>
+
+    <!-- v5.3 -->
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1447433819943-74a20887a81e" />
+      <h3>v5.3 — Galaxy Bloom</h3>
+      <p>은하 팽창·고휘도 폭발형.  
+         음악에 따라 빛의 꽃이 피어나는 버전.</p>
+      <a class="btn" href="TouchWave_v5_3_GalaxyBloom.html">실행</a>
+      <a class="btn" href="#">ZIP</a>
+    </div>
+
+    <!-- v5.2 -->
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3" />
+      <h3>v5.2 — Deep Nebula</h3>
+      <p>입체 성운 3D.  
+         부드러운 성운층이 깊게 겹쳐지는 명상형.</p>
+      <a class="btn" href="TouchWave_v5_2_DeepNebula3D.html">실행</a>
+      <a class="btn" href="#">ZIP</a>
+    </div>
+
+    <!-- v5.1 -->
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1447433904450-4a6f2d5b5cc6" />
+      <h3>v5.1 — NebulaWave</h3>
+      <p>성운 웨이브 흐름 기반 첫 번째 파동 버전.</p>
+      <a class="btn" href="TouchWave_v5_1_NebulaWave.html">실행</a>
+      <a class="btn" href="#">ZIP</a>
+    </div>
+
+    <!-- v5.0 -->
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3" />
+      <h3>v5.0 — Quantum FractalWave</h3>
+      <p>프랙탈 기반 초기 TouchWave 구조.  
+         v5 계열의 시작점.</p>
+      <a class="btn" href="TouchWave_v5_0_QuantumFractalWave.html">실행</a>
+      <a class="btn" href="#">ZIP</a>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
