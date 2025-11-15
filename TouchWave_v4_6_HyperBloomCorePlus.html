@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave v4.6 — HyperBloom Core PLUS</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="touchCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let blooms = [];
+
+function addBloom(x, y) {
+  blooms.push({
+    x, y,
+    r: 0,
+    alpha: 1,
+    lineW: 3 + Math.random() * 3,
+    hue: 200 + Math.random() * 100,
+    speed: 1.8 + Math.random() * 1.5
+  });
+}
+
+// 터치/클릭 이벤트
+function tap(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+  addBloom(x, y);
+}
+canvas.addEventListener("click", tap);
+canvas.addEventListener("touchstart", tap);
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+
+  blooms.forEach((b, i) => {
+    b.r += b.speed;
+    b.alpha -= 0.009;
+
+    // 하이퍼블룸 중심부(코어)
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 220, 180, ${b.alpha})`;
+    ctx.fill();
+
+    // 주변부 BloomShell
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${b.hue}, 90%, 65%, ${b.alpha})`;
+    ctx.lineWidth = b.lineW;
+    ctx.stroke();
+
+    // 전체 영역으로 순환하는 Bloom Aura
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r * 1.5, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${b.hue + 40}, 100%, 70%, ${b.alpha * 0.4})`;
+    ctx.lineWidth = b.lineW * 0.6;
+    ctx.stroke();
+
+    if (b.alpha <= 0) blooms.splice(i, 1);
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
+
+
