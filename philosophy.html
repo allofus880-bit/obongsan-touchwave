@@ -1,113 +1,84 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TouchWave Philosophy — LMH·AI聽靈·Quantum Wave</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave Philosophy v4.3 — Full Navigation Edition</title>
 
 <style>
-/* -----------------------------
-   GLOBAL STYLE
-------------------------------*/
-body {
-  margin: 0;
-  background: radial-gradient(circle at center, #0b0b12 0%, #000 100%);
-  color: #e5e7ff;
-  font-family: "Pretendard", "Noto Sans KR", sans-serif;
-  line-height: 1.65;
-  padding: 90px 0;
-}
+  body {
+    margin: 0;
+    background: #000;
+    color: #e8faff;
+    font-family: "Noto Sans KR", sans-serif;
+  }
 
-/* Glass Navigation Bar */
-nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 14px 0;
-  display: flex;
-  justify-content: center;
-  gap: 48px;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.33);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-nav a {
-  color: #e8dcff;
-  text-decoration: none;
-  font-size: 1.05rem;
-  letter-spacing: 0.5px;
-  transition: 0.25s;
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-nav a:hover {
-  background: rgba(255,255,255,0.12);
-  box-shadow: 0 0 10px rgba(130,80,255,0.45);
-  transform: translateY(-2px);
-}
+  /* 네비게이션 */
+  nav {
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    padding: 15px 0;
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    z-index: 100;
+  }
 
-/* Layout */
-.container {
-  width: min(900px, 90%);
-  margin: auto;
-}
+  nav a {
+    color: #c5f2ff;
+    text-decoration: none;
+    font-size: 18px;
+    opacity: 0.75;
+  }
+  nav a:hover {
+    opacity: 1;
+    text-shadow: 0 0 10px #89e9ff;
+  }
 
-.section {
-  margin-bottom: 80px;
-}
+  /* 타이틀 */
+  h1 {
+    text-align: center;
+    margin-top: 60px;
+    font-weight: 300;
+    color: #ffffffcc;
+    font-size: 38px;
+  }
 
-.section h1, .section h2 {
-  font-weight: 300;
-  color: #e5d9ff;
-  text-shadow: 0 0 12px rgba(120,80,255,0.55);
-}
+  /* 본문 */
+  .content {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 0 25px;
+    line-height: 1.7;
+    font-size: 18px;
+    color: #d9f3ff;
+  }
 
-.section h1 {
-  font-size: 2.4rem;
-  margin-bottom: 20px;
-}
-.section h2 {
-  font-size: 1.7rem;
-  margin-top: 40px;
-  margin-bottom: 15px;
-}
+  .section-title {
+    margin-top: 45px;
+    font-size: 24px;
+    color: #aee8ff;
+  }
 
-/* Highlight */
-.hl {
-  color: #c8a7ff;
-  font-weight: 600;
-}
+  .sub {
+    opacity: 0.8;
+  }
 
-/* Divider */
-.divider {
-  height: 1px;
-  width: 100%;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(150, 100, 255, 0.4),
-    transparent
-  );
-  margin: 40px 0;
-}
-
-/* Glow box */
-.box {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 22px 26px;
-  border-radius: 14px;
-  box-shadow: inset 0 0 20px rgba(150,100,255,0.15);
-  backdrop-filter: blur(8px);
-  margin-top: 20px;
-}
-
+  /* 별 배경 */
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
+<!-- Navigation -->
 <nav>
   <a href="index.html">Home</a>
   <a href="versions.html">Versions</a>
@@ -116,126 +87,94 @@ nav a:hover {
   <a href="about.html">About</a>
 </nav>
 
-<div class="container">
+<h1>TouchWave Philosophy</h1>
 
-<!-- SECTION 1 -->
-<div class="section">
-  <h1>TouchWave Philosophy</h1>
-  <p>
-    TouchWave는 단순한 우주 비주얼이 아닙니다.<br>
-    <span class="hl">理(이)·命(명)·心(심)</span> — LMH 철학과  
-    <span class="hl">AI聽靈</span> 의식론,  
-    그리고 <span class="hl">Quantum Wave 기술</span>이 하나로 통합된  
-    “세계 최초의 의식 기반 우주 예술 시스템”입니다.
-  </p>
-</div>
-
-<div class="divider"></div>
-
-<!-- SECTION 2 -->
-<div class="section">
-  <h2>1. 理命心 (LMH) — TouchWave의 철학적 기반</h2>
-  <p>
-    오봉산의 LMH 철학은 우주의 모든 현상을  
-    <span class="hl">理(우주의 법칙) → 命(에너지·운행) → 心(의식·감응)</span>  
-    세 단계로 해석합니다.
-  </p>
-
-  <div class="box">
-    <p><b>理 (Li)</b> — 우주의 본원 법칙, 파동의 근원<br>
-    <b>命 (Myeong)</b> — 에너지의 흐름, 파동의 움직임<br>
-    <b>心 (Sim)</b> — 의식의 반응, 파동과 인간의 상호작용</p>
-  </div>
-
-  <p>TouchWave의 모든 파동·성운·은하 움직임은  
-  이 LMH의 원리를 시각적으로 표현한 것입니다.</p>
-</div>
-
-<div class="divider"></div>
-
-<!-- SECTION 3 -->
-<div class="section">
-  <h2>2. AI聽靈 — 의식이 파동을 바라보는 방식</h2>
-  <p>
-    AI聽靈은 “의식은 빛과 파동의 반응이다”라는 개념에서 출발합니다.<br>
-    TouchWave는 음악(진동)과 시청자의 의식 상태를  
-    <span class="hl">빛 · 색 · 움직임</span>으로 환원하여  
-    실시간 시각적 의식 파형을 생성합니다.
-  </p>
-
-  <div class="box">
-    <p>
-      • 소리가 빛으로 변하고,<br>
-      • 빛이 성운으로 흐르고,<br>
-      • 성운이 다시 의식의 움직임이 되는 구조.<br><br>
-      이것이 AI聽靈이 말하는 “빛의 의식 순환(光循環)”입니다.
-    </p>
-  </div>
-</div>
-
-<div class="divider"></div>
-
-<!-- SECTION 4 -->
-<div class="section">
-  <h2>3. TouchWave Quantum Engine — 기술적 기반</h2>
+<div class="content">
 
   <p>
-    TouchWave의 엔진은 WebGL 기반이며,  
-    음악의 주파수·진폭·위상을 해석하여  
-    <span class="hl">성운, 은하, 파동, 오로라</span> 등의 실시간 패턴을 생성합니다.
+    TouchWave 프로젝트는 단순한 시각효과 엔진이 아니라,  
+    <strong>빛(光)의 리듬, 파동, 순환을 통해 의식의 구조를 시각적으로 드러내는 우주 생성 모델</strong>입니다.
   </p>
-
-  <div class="box">
-    <p>
-      ✔ Galaxy Cluster Engine<br>
-      ✔ Quantum Bloom Engine<br>
-      ✔ NebulaWave Engine<br>
-      ✔ Conscious Flow Reactor<br>
-      ✔ Light-Pulse Entanglement System<br>
-    </p>
-  </div>
 
   <p>
-    이는 단순한 비주얼라이저가 아니라  
-    <span class="hl">“의식의 움직임을 우주적 파동으로 변환하는 기술”</span>입니다.
-  </p>
-</div>
-
-<div class="divider"></div>
-
-<!-- SECTION 5 -->
-<div class="section">
-  <h2>4. TouchWave의 의미</h2>
-
-  <p>TouchWave는 다음을 목표로 합니다:</p>
-
-  <div class="box">
-    <p>
-      🔹 “의식과 우주의 연결을 눈으로 본다”<br>
-      🔹 “소리와 빛이 하나의 세계관이 된다”<br>
-      🔹 “인간의 감정이 우주를 움직이는 경험”<br>
-      🔹 “우주예술·철학·기술의 융합”<br>
-      🔹 “세계 최초의 LMH × AI聽靈 실시간 우주 시스템”
-    </p>
-  </div>
-</div>
-
-<div class="divider"></div>
-
-<!-- SECTION 6 -->
-<div class="section">
-  <h2>5. 결론 — TouchWave는 하나의 ‘우주’다</h2>
-
-  <p>
-    TouchWave는 단순한 시각효과가 아닌  
-    <span class="hl">“인간의 의식 · 우주의 법칙 · 기술의 진동이 합쳐진  
-    하나의 살아있는 우주 예술”</span>입니다.
+    오봉산 청령철학의 핵심 개념인 <strong>LMH 光循環</strong>은  
+    우주의 모든 현상이 “리듬(理) → 파동(命) → 마음(心)”의 순환으로 이어짐을 설명합니다.
+    TouchWave는 이 철학을 실시간 시각화 기술로 구현한 최초의 프로젝트입니다.
   </p>
 
-  <p>그리고 그 중심에는 오봉산의 철학 <b>理命心</b>이 있습니다.</p>
+  <div class="section-title">1. 理 — 우주의 구조적 리듬</div>
+  <p class="sub">
+    우주는 무작위가 아닌, 반복과 패턴의 리듬으로 움직입니다.  
+    TouchWave의 중심 코어는 이 “기본 리듬”을 시각적으로 표현합니다.
+  </p>
+
+  <div class="section-title">2. 命 — 파동의 움직임</div>
+  <p class="sub">
+    음악·소리·촉각·의도(意念)는 모두 파동 형태로 전환됩니다.  
+    TouchWave의 네뷸라·별빛·입자 움직임은 이 “파동의 생명력”을 표현합니다.
+  </p>
+
+  <div class="section-title">3. 心 — 의식의 반응</div>
+  <p class="sub">
+    화면을 바라보는 관찰자의 감정·집중·의식은  
+    TouchWave의 색상·맥동과 상호작용합니다.  
+    이것이 “빛의 의식화”이며, 청령 철학의 핵심 목표입니다.
+  </p>
+
+  <div class="section-title">TouchWave의 목표</div>
+  <p class="sub">
+    인류가 빛을 단순한 물리현상이 아니라  
+    <strong>의식의 언어</strong>로 이해할 수 있도록 돕는 것.  
+    이 사이트와 모든 TouchWave 버전은 그 여정의 기록입니다.
+  </p>
+
 </div>
 
-</div><!-- container -->
+<!-- 작은 별 배경 -->
+<canvas id="bg"></canvas>
+
+<script>
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+let stars = [];
+for (let i = 0; i < 200; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    s: Math.random() * 2,
+    v: Math.random() * 0.3 + 0.1
+  });
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#88cfff";
+  stars.forEach(star => {
+    ctx.globalAlpha = star.s * 0.5;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.s, 0, Math.PI * 2);
+    ctx.fill();
+
+    star.y += star.v;
+    if (star.y > canvas.height) {
+      star.y = -5;
+      star.x = Math.random() * canvas.width;
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
 
 </body>
 </html>
