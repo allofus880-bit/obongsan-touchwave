@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v4.2 — DualBloom Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #0b0b14 0%, #000 100%);
+        touch-action: none;
+    }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+class DualBloomWave {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+
+        this.radius1 = 0;
+        this.radius2 = 0;
+
+        this.alpha = 1;
+
+        this.rot1 = Math.random() * Math.PI * 2;
+        this.rot2 = Math.random() * Math.PI * 2;
+
+        this.hue1 = 160 + Math.random() * 80;
+        this.hue2 = this.hue1 + 40;
+
+        this.speed1 = 1 + Math.random() * 0.7;
+        this.speed2 = 0.8 + Math.random() * 0.6;
+
+        this.rotSpeed1 = 0.02 + Math.random() * 0.02;
+        this.rotSpeed2 = -0.015 + Math.random() * 0.03;
+    }
+
+    update() {
+        this.radius1 += this.speed1;
+        this.radius2 += this.speed2;
+
+        this.rot1 += this.rotSpeed1;
+        this.rot2 += this.rotSpeed2;
+
+        this.alpha -= 0.0065;
+    }
+
+    drawBloom(radius, rotation, hue, size) {
+        const petals = 6;
+        for (let i = 0; i < petals; i++) {
+            const angle = rotation + (i * Math.PI * 2) / petals;
+            const px = this.x + Math.cos(angle) * radius;
+            const py = this.y + Math.sin(angle) * radius;
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${hue}, 100%, 65%, ${this.alpha})`;
+            ctx.arc(px, py, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${hue + 20}, 100%, 80%, ${this.alpha * 0.7})`;
+            ctx.arc(px, py, size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    draw() {
+        this.drawBloom(this.radius1, this.rot1, this.hue1, 16);
+        this.drawBloom(this.radius2, this.rot2, this.hue2, 10);
+    }
+}
+
+let waves = [];
+
+window.addEventListener("pointerdown", e => {
+    waves.push(new DualBloomWave(e.clientX, e.clientY));
+});
+window.addEventListener("pointermove", e => {
+    if (e.pressure > 0) {
+        waves.push(new DualBloomWave(e.clientX, e.clientY));
+    }
+});
+
+function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.075)";
+    ctx.fillRect(0, 0, w, h);
+
+    waves.forEach((wave, i) => {
+        wave.update();
+        wave.draw();
+        if (wave.alpha <= 0) waves.splice(i, 1);
+    });
+
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
