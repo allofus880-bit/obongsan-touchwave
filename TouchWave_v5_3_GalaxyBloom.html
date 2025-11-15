@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v5.3 — Galaxy Bloom Edition</title>
+
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    background: #000; touch-action: none;
+  }
+  canvas { position:absolute; top:0; left:0; }
+</style>
+</head>
+
+<body>
+
+<!-- 3중 성운 -->
+<canvas id="nebulaBack"></canvas>
+<canvas id="nebulaMid"></canvas>
+<canvas id="nebulaFront"></canvas>
+
+<!-- 은하 + 폭발 -->
+<canvas id="galaxy"></canvas>
+
+<!-- 프랙탈 터치 -->
+<canvas id="touchCanvas"></canvas>
+
+<script>
+let W, H;
+const cvsB = document.getElementById("nebulaBack");
+const cvsM = document.getElementById("nebulaMid");
+const cvsF = document.getElementById("nebulaFront");
+const cvsG = document.getElementById("galaxy");
+const cvsT = document.getElementById("touchCanvas");
+
+const ctxB = cvsB.getContext("2d");
+const ctxM = cvsM.getContext("2d");
+const ctxF = cvsF.getContext("2d");
+const ctxG = cvsG.getContext("2d");
+const ctxT = cvsT.getContext("2d");
+
+function resize(){
+  W = cvsB.width  = cvsM.width  = cvsF.width  = cvsG.width  = cvsT.width  = innerWidth;
+  H = cvsB.height = cvsM.height = cvsF.height = cvsG.height = cvsT.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+let t = 0;
+
+// ---------- Nebula noise ----------
+function noise(x,y,t){
+  return (
+    Math.sin(x*0.002 + t*0.0005) +
+    Math.sin(y*0.0025 + t*0.0006) +
+    Math.sin((x+y)*0.0018 + t*0.0004)
+  ) * 0.33 + 0.5;
+}
+
+function drawNebula(ctx, colorShift, depth){
+  const img = ctx.createImageData(W,H);
+  const d = img.data;
+  let i=0;
+
+  for(let y=0; y<H; y++){
+    for(let x=0; x<W; x++){
+      const n = noise(x+depth*20, y+depth*30, t);
+
+      let r = n*200 + colorShift;
+      let g = n*80  + colorShift*0.3;
+      let b = n*255;
+
+      d[i++] = r;
+      d[i++] = g;
+      d[i++] = b;
+      d[i++] = 55;
+    }
+  }
+
+  ctx.putImageData(img,0,0);
+}
+
+// ---------- Parallax ----------
+let px=0, py=0;
+addEventListener("mousemove", e=>{
+  px = (e.clientX - W/2) * 0.015;
+  py = (e.clientY - H/2) * 0.015;
+});
+addEventListener("touchmove", e=>{
+  const t = e.touches[0];
+  px = (t.clientX - W/2) * 0.015;
+  py = (t.clientY - H/2) * 0.015;
+});
+
+// ---------- Galaxy Bloom Core ----------
+let corePulse = 0;
+let coreSpeed = 0.03;
+
+function drawGalaxyBloom(){
+  ctxG.clearRect(0,0,W,H);
+
+  const cx = W/2 + px*10;
+  const cy = H/2 + py*10;
+
+  corePulse += coreSpeed;
+  const radius = 60 + Math.sin(corePulse)*40;
+
+  // 중심 블룸 (고휘도)
+  const grd = ctxG.createRadialGradient(cx,cy,10, cx,cy,radius*4);
+  grd.addColorStop(0, "rgba(255,240,200,1)");
+  grd.addColorStop(0.2,"rgba(255,200,150,0.75)");
+  grd.addColorStop(0.5,"rgba(255,150,90,0.35)");
+  grd.addColorStop(1,  "rgba(0,0,0,0)");
+  ctxG.fillStyle = grd;
+  ctxG.beginPath();
+  ctxG.arc(cx,cy,radius*4,0,Math.PI*2);
+  ctxG.fill();
+
+  // 은하 팔(arms)
+  for(let i=0;i<100;i++){
+    const ang = i*(Math.PI*2/20) + corePulse*0.4;
+    const dist = Math.sin(corePulse+i*0.1)*80 + i*6;
+
+    const x = cx + Math.cos(ang)*dist;
+    const y = cy + Math.sin(ang)*dist;
+
+    ctxG.beginPath();
+    ctxG.arc(x,y, 1.6 + (i%5)*0.3, 0, Math.PI*2);
+    ctxG.fillStyle = `rgba(255, ${150+i}, ${100+i*2}, ${1 - i/100})`;
+    ctxG.fill();
+  }
+}
+
+// ---------- Click explosion + fractal ----------
+let fractals = [];
+
+function createFractal(x,y){
+  const count = 6 + Math.random()*6;
+  const hue = 160 + Math.random()*150;
+
+  for(let i=0;i<count;i++){
+    const angle = (Math.PI*2/count)*i;
+
+    fractals.push({
+      x,y, len:0, alpha:1, hue,
+      speed: 3 + Math.random()*3,
+      ang: angle + (Math.random()*0.7-0.35)
+    });
+  }
+}
+
+function tap(e){
+  const r = cvsT.getBoundingClientRect();
+  const x = (e.touches? e.touches[0].clientX:e.clientX)-r.left;
+  const y = (e.touches? e.touches[0].clientY:e.clientY)-r.top;
+
+  createFractal(x,y);
+}
+cvsT.addEventListener("click",tap);
+cvsT.addEventListener("touchstart",tap);
+
+// ---------- Main loop ----------
+function animate(){
+  // 3중 성운
+  ctxB.clearRect(0,0,W,H);
+  ctxM.clearRect(0,0,W,H);
+  ctxF.clearRect(0,0,W,H);
+
+  ctxB.save(); ctxB.translate(px*0.2, py*0.2); drawNebula(ctxB, 40, 3); ctxB.restore();
+  ctxM.save(); ctxM.translate(px*0.6, py*0.6); drawNebula(ctxM,100, 2); ctxM.restore();
+  ctxF.save(); ctxF.translate(px*1.0, py*1.0); drawNebula(ctxF,180, 1); ctxF.restore();
+
+  // Galaxy bloom
+  drawGalaxyBloom();
+
+  // 터치 fractal
+  ctxT.clearRect(0,0,W,H);
+  fractals.forEach((f,i)=>{
+    f.len += f.speed;
+    f.alpha -= 0.01;
+
+    const x2 = f.x + Math.cos(f.ang)*f.len;
+    const y2 = f.y + Math.sin(f.ang)*f.len;
+
+    ctxT.beginPath();
+    ctxT.moveTo(f.x,f.y);
+    ctxT.lineTo(x2,y2);
+    ctxT.strokeStyle = `hsla(${f.hue + f.len*0.3},100%,70%,${f.alpha})`;
+    ctxT.lineWidth = 1.5;
+    ctxT.stroke();
+
+    if(f.alpha<=0) fractals.splice(i,1);
+  });
+
+  t++;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
