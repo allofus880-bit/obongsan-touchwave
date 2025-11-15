@@ -1,3 +1,197 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave Home v4.2 — Responsive Navigation Edition</title>
+
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: "Noto Sans KR", sans-serif;
+    color: #d8f7ff;
+  }
+
+  /* 네비게이션 */
+  nav {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 0 10px;
+  }
+  nav a {
+    color: #dff8ff;
+    text-decoration: none;
+    font-size: 17px;
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+  nav a:hover {
+    opacity: 1;
+    text-shadow: 0 0 8px #8deeff;
+  }
+
+  /* 중앙 텍스트 */
+  .center-title {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 42px;
+    font-weight: 300;
+    text-align: center;
+    color: #ffffffcc;
+    z-index: 10;
+    letter-spacing: 0.8px;
+    padding: 0 10px;
+  }
+  .sub-text {
+    margin-top: 18px;
+    font-size: 18px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- 네비게이션 -->
+<nav>
+  <a href="index.html">Home</a>
+  <a href="versions.html">Versions</a>
+  <a href="philosophy.html">Philosophy</a>
+</nav>
+
+<!-- 중앙 타이틀 -->
+<div class="center-title">
+  TouchWave — Living Light Universe<br>
+  <div class="sub-text">LMH 光循環 + 光脈動 기반 우주 생성 엔진</div>
+</div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+<script>
+/* ============================
+   기본 세팅
+============================ */
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+camera.position.z = 45;
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* ============================
+   Galaxy Field
+============================ */
+const starGeometry = new THREE.BufferGeometry();
+const starCount = 20000;
+const positions = new Float32Array(starCount * 3);
+
+for (let i = 0; i < starCount * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 600;
+}
+starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+let starMaterial = new THREE.PointsMaterial({
+  size: 0.9,
+  transparent: true,
+  opacity: 0.85,
+  color: 0xffffff
+});
+
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+/* ============================
+   Core + Nebula
+============================ */
+const coreGeometry = new THREE.SphereGeometry(6, 64, 64);
+let coreMaterial = new THREE.MeshBasicMaterial({
+  color: 0x6688ff,
+  transparent: true,
+  opacity: 0.95
+});
+const core = new THREE.Mesh(coreGeometry, coreMaterial);
+scene.add(core);
+
+const nebulaGeometry = new THREE.SphereGeometry(80, 64, 64);
+let nebulaMaterial = new THREE.MeshBasicMaterial({
+  color: 0x4466ff,
+  transparent: true,
+  opacity: 0.22
+});
+const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+scene.add(nebula);
+
+/* ============================
+   LMH 색 순환
+============================ */
+function spectrumColor(t) {
+  let r = Math.sin(t * 0.2) * 0.5 + 0.5;
+  let g = Math.sin(t * 0.2 + 2) * 0.5 + 0.5;
+  let b = Math.sin(t * 0.2 + 4) * 0.5 + 0.5;
+  return new THREE.Color(r, g, b);
+}
+
+/* ============================
+   Pulse (맥동)
+============================ */
+function pulseValue(t) {
+  return 1.0 + Math.sin(t * 2.2) * 0.08;
+}
+
+/* ============================
+   애니메이션
+============================ */
+function animate(t) {
+  requestAnimationFrame(animate);
+
+  let tt = t * 0.001;
+
+  nebula.rotation.y += 0.0008;
+  stars.rotation.y += 0.00015;
+  core.rotation.y -= 0.002;
+
+  let col = spectrumColor(tt);
+  coreMaterial.color = col;
+  nebulaMaterial.color = col;
+  starMaterial.color = col;
+
+  let pulse = pulseValue(tt);
+  core.scale.set(pulse, pulse, pulse);
+
+  let nebulaPulse = 1.0 + Math.sin(tt * 1.2) * 0.015;
+  nebula.scale.set(nebulaPulse, nebulaPulse, nebulaPulse);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* ============================
+   반응형
+============================ */
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+</body>
+</html>
+
 
 
