@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v4.1 — QuantumBloom Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #0c0c15 0%, #000 100%);
+        touch-action: none;
+    }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+class BloomWave {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.alpha = 1;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.hue = 180 + Math.random() * 120;
+        this.speed = 1 + Math.random() * 0.7;
+        this.rotSpeed = 0.02 + Math.random() * 0.02;
+    }
+    update() {
+        this.radius += this.speed;
+        this.rotation += this.rotSpeed;
+        this.alpha -= 0.007;
+    }
+    draw() {
+        const petals = 6;
+        for (let i = 0; i < petals; i++) {
+            const angle = this.rotation + (i * Math.PI * 2) / petals;
+            const px = this.x + Math.cos(angle) * this.radius;
+            const py = this.y + Math.sin(angle) * this.radius;
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${this.hue}, 100%, 65%, ${this.alpha})`;
+            ctx.arc(px, py, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${this.hue + 20}, 100%, 80%, ${this.alpha * 0.8})`;
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
+let waves = [];
+
+window.addEventListener("pointerdown", e => {
+    waves.push(new BloomWave(e.clientX, e.clientY));
+});
+
+window.addEventListener("pointermove", e => {
+    if (e.pressure > 0) {
+        waves.push(new BloomWave(e.clientX, e.clientY));
+    }
+});
+
+function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+    ctx.fillRect(0, 0, w, h);
+
+    waves.forEach((wave, i) => {
+        wave.update();
+        wave.draw();
+        if (wave.alpha <= 0) waves.splice(i, 1);
+    });
+
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
