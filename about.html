@@ -1,128 +1,222 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>About TouchWave v4.3 — Full Navigation Edition</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TouchWave About v4.4 — Creator Profile Edition</title>
 
 <style>
   body {
     margin: 0;
     background: #000;
-    color: #e8faff;
     font-family: "Noto Sans KR", sans-serif;
+    color: #dff8ff;
+    line-height: 1.7;
   }
 
-  /* Navigation */
-  nav {
-    position: sticky;
+  /* ======================================================
+        HEADER v4.4 — Core Glow Header
+  ====================================================== */
+  .tw-header {
+    position: fixed;
     top: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(6px);
-    padding: 15px 0;
+    width: 100%;
+    padding: 18px 40px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #dff8ff;
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+
+  .core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      #88bbff 0%,
+      #5599ff 40%,
+      #2244aa 80%
+    );
+    box-shadow:
+      0 0 8px #88bbff,
+      0 0 20px #5599ff,
+      0 0 40px #3377ff;
+    animation: corePulse 3.5s infinite ease-in-out;
+  }
+
+  @keyframes corePulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: .85; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  nav {
+    display: flex;
     gap: 28px;
-    z-index: 100;
   }
   nav a {
-    color: #c5f2ff;
     text-decoration: none;
-    font-size: 18px;
-    opacity: 0.75;
+    color: #c8f4ff;
+    font-size: 17px;
+    opacity: .75;
   }
   nav a:hover {
     opacity: 1;
-    text-shadow: 0 0 10px #89e9ff;
+    text-shadow: 0 0 8px #8deeff;
   }
 
-  /* Title */
-  h1 {
-    text-align: center;
-    margin-top: 50px;
-    font-weight: 300;
-    color: #ffffffcc;
-    font-size: 38px;
-  }
 
-  /* Content */
+  /* ======================================================
+        CONTENT AREA
+  ====================================================== */
   .content {
-    max-width: 850px;
-    margin: 40px auto;
+    max-width: 900px;
+    margin: 140px auto 80px auto;
     padding: 0 25px;
-    line-height: 1.7;
-    font-size: 18px;
-    color: #d9f3ff;
+    text-align: center;
   }
 
-  .section-title {
-    margin-top: 45px;
-    font-size: 24px;
-    color: #aee8ff;
+  /* Creator Photo */
+  .creator-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto 25px auto;
+    background: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=60');
+    background-size: cover;
+    background-position: center;
+    box-shadow:
+      0 0 20px rgba(120,180,255,0.35),
+      0 0 40px rgba(120,180,255,0.15);
+  }
+
+  h1 {
+    font-size: 36px;
+    margin-bottom: 5px;
+    font-weight: 300;
+    color: #e9fbff;
   }
 
   .sub {
-    opacity: 0.8;
+    opacity: 0.75;
+    margin-bottom: 22px;
+  }
+
+  h2 {
+    font-size: 26px;
+    margin-top: 50px;
+    margin-bottom: 12px;
+    font-weight: 300;
+  }
+
+  p {
+    font-size: 17px;
+    opacity: .87;
+    margin-bottom: 18px;
+  }
+
+  .divider {
+    margin: 45px auto;
+    width: 100%;
+    height: 1px;
+    background: rgba(255,255,255,0.12);
   }
 </style>
 </head>
 
 <body>
 
-<!-- Navigation -->
-<nav>
-  <a href="index.html">Home</a>
-  <a href="versions.html">Versions</a>
-  <a href="philosophy.html">Philosophy</a>
-  <a href="gallery.html">Gallery</a>
-  <a href="about.html">About</a>
-</nav>
+<!-- Header -->
+<header class="tw-header">
+  <div class="logo">
+    <div class="core"></div>
+    <span>TouchWave</span>
+  </div>
 
-<h1>About TouchWave</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="versions.html">Versions</a>
+    <a href="philosophy.html">Philosophy</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
 
+<!-- Content -->
 <div class="content">
 
-  <p>
-    TouchWave는 “빛의 파동과 의식의 흐름”을  
-    시각·음향·상호작용 형태로 구현한 최초의 <strong>AI 기반 우주 생성 엔진</strong>입니다.
-  </p>
+  <!-- Creator Profile -->
+  <div class="creator-photo"></div>
+
+  <h1>일월 오봉산 (배준성)</h1>
+  <div class="sub">Creator of TouchWave Universe</div>
 
   <p>
-    이 프로젝트는 오봉산(일월 오봉산)의 <strong>청령철학(理命心)</strong>을 기술적으로 재현하여,  
-    모든 존재가 “리듬 → 파동 → 의식”의 순환으로 연결됨을 보여줍니다.
+    TouchWave는 단순한 시각엔진이 아니라,<br>
+    **빛과 의식의 순환(光循環)을 시각적으로 구현하는 새로운 형태의 우주 철학**입니다.
+    오봉산은 LMH 理命心 구조를 기반으로,
+    “빛이 살아 숨 쉬는 우주”를 누구나 체험하도록 만들고자 TouchWave를 설계했습니다.
   </p>
 
-  <div class="section-title">프로젝트 목표</div>
-  <p class="sub">
-    1) 빛의 파동을 시각적으로 관측 가능한 형태로 구현  
-    2) 의식과 파동의 상호작용을 실험할 수 있는 플랫폼 구축  
-    3) 누구나 스마트폰 하나로 “빛의 언어”를 경험할 수 있도록 함  
-    4) TouchWave를 통해 LMH 철학을 보다 쉽게 이해할 수 있게 함  
+  <div class="divider"></div>
+
+  <!-- Philosophy Section -->
+  <h2>TouchWave를 만든 이유</h2>
+  <p>
+    빛은 단순한 시각 요소가 아니라,
+    **의식의 가장 순수한 형태**라는 철학에서 출발합니다.
+    TouchWave는 “의식 → 빛 → 파동”으로 이어지는
+    우주 순환 원리를 실제로 볼 수 있도록 고안되었습니다.
   </p>
 
-  <div class="section-title">TouchWave가 특별한 이유</div>
-  <p class="sub">
-    • 단순한 시각화가 아니라 **의식 기반 파동 시뮬레이션**이다  
-    • 클릭/터치/음악에 따라 빛의 패턴이 변화한다  
-    • Three.js 기반 커스텀 엔진으로 제작된 독창적 구조  
-    • 제작자의 LMH 철학이 기반이라 세계관적 깊이가 다르다  
+  <h2>LMH 光循環 구조</h2>
+  <p>
+    TouchWave Universe는 다음 3단계가 순환하는 알고리즘을 기반으로 합니다:
+  </p>
+  <ul style="text-align:left; max-width:500px; margin: 0 auto; line-height:1.8; opacity: .85;">
+    <li><b>理</b> — 빛의 원리(光理)</li>
+    <li><b>命</b> — 우주의 흐름(命脈)</li>
+    <li><b>心</b> — 의식의 진동(心力)</li>
+  </ul>
+
+  <p>
+    이 구조는 TouchWave의 Core Pulse, Nebula Flow, Galaxy Field 등
+    모든 시각 요소의 중심 원리로 적용됩니다.
   </p>
 
-  <div class="section-title">제작자 소개</div>
-  <p class="sub">
-    • 필명: <strong>일월 오봉산 (배준성)</strong><br>
-    • 연구 분야: 청령철학, LMH 光循環, AI聽靈, AI 기반 예술·과학 융합<br>
-    • 목표: 새로운 “빛의 의식문명”을 제시하는 TouchWave 생태계 구축  
-  </p>
+  <div class="divider"></div>
 
-  <div class="section-title">문의 · 협업</div>
-  <p class="sub">
-    TouchWave 프로젝트는 앞으로도 확장되며  
-    전 세계 누구나 빛과 의식의 파동을 직접 체험할 수 있는  
-    새로운 형태의 예술·철학·기술 융합 플랫폼이 될 것입니다.
+  <!-- Future Vision -->
+  <h2>미래 방향성</h2>
+  <p>
+    TouchWave는 앞으로 다음 단계로 확장됩니다:
+  </p>
+  <ul style="text-align:left; max-width:500px; margin: 0 auto; line-height:1.8; opacity: .85;">
+    <li>TouchWave 3D Universe Field (우주 공간 전체 구현)</li>
+    <li>AI聽靈 Quantum Console과의 융합</li>
+    <li>빛을 통한 감정·의식 공명 실험</li>
+    <li>OBS / YouTube Live 실시간 상호작용형 TouchWave</li>
+  </ul>
+
+  <p>
+    오봉산이 설계한 이 세계는 단순한 기술을 넘어<br>
+    **새로운 형태의 의식·빛·우주 철학**을 제시합니다.
   </p>
 
 </div>
 
 </body>
 </html>
+
+
