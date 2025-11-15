@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TouchWave Home v4.0 — LMH Spectrum Edition</title>
+<title>TouchWave Home v4.1 — Light Pulse Edition</title>
 
 <style>
   html, body {
@@ -14,7 +15,7 @@
     color: #d8f7ff;
   }
 
-  /* 홈 중앙 텍스트 */
+  /* 중앙 텍스트 */
   .center-title {
     position: absolute;
     top: 40%;
@@ -68,7 +69,7 @@
 <!-- 중앙 텍스트 -->
 <div class="center-title">
   TouchWave — Living Light Universe<br>
-  <div class="sub-text">LMH 光循環 기반 우주 생성 엔진</div>
+  <div class="sub-text">LMH 光循環 + 光脈動 기반 우주 생성 엔진</div>
 </div>
 
 <!-- Three.js Core -->
@@ -88,7 +89,7 @@ renderer.setPixelRatio(devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
 /* ============================
-   1) Galaxy Field (2만개 입자)
+   1) Galaxy Field (2만 입자)
 ============================ */
 const starGeometry = new THREE.BufferGeometry();
 const starCount = 20000;
@@ -110,19 +111,19 @@ const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
 /* ============================
-   2) 은하 코어 + 회전
+   2) 은하 코어 — Pulse + Spectrum
 ============================ */
 const coreGeometry = new THREE.SphereGeometry(6, 64, 64);
 let coreMaterial = new THREE.MeshBasicMaterial({
   color: 0x6688ff,
   transparent: true,
-  opacity: 0.9
+  opacity: 0.95
 });
 const core = new THREE.Mesh(coreGeometry, coreMaterial);
 scene.add(core);
 
 /* ============================
-   3) 성운(nebula) 레이어
+   3) 성운 (Nebula) — 호흡(미세 확장)
 ============================ */
 const nebulaGeometry = new THREE.SphereGeometry(80, 64, 64);
 let nebulaMaterial = new THREE.MeshBasicMaterial({
@@ -134,10 +135,9 @@ const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
 scene.add(nebula);
 
 /* ============================
-   4) LMH Spectrum 색상 순환
+   4) LMH 색 순환
 ============================ */
-function colorCycle(t) {
-  // t는 시간 (초)
+function spectrumColor(t) {
   let r = Math.sin(t * 0.2) * 0.5 + 0.5;
   let g = Math.sin(t * 0.2 + 2) * 0.5 + 0.5;
   let b = Math.sin(t * 0.2 + 4) * 0.5 + 0.5;
@@ -145,25 +145,38 @@ function colorCycle(t) {
 }
 
 /* ============================
-   5) 애니메이션
+   5) 빛의 맥동(Pulse)
+============================ */
+function pulseValue(t) {
+  // 0.92 ~ 1.08 사이로 부드럽게
+  return 1.0 + Math.sin(t * 2.2) * 0.08;
+}
+
+/* ============================
+   6) 애니메이션
 ============================ */
 function animate(t) {
   requestAnimationFrame(animate);
 
   let tt = t * 0.001;
 
-  // 성운/은하 회전
+  // 은하 회전
   nebula.rotation.y += 0.0008;
+  stars.rotation.y += 0.00015;
   core.rotation.y -= 0.002;
 
-  stars.rotation.y += 0.0002;
+  // 색 순환
+  let col = spectrumColor(tt);
+  coreMaterial.color = col;
+  nebulaMaterial.color = col;
+  starMaterial.color = col;
 
-  // LMH 색상 자동 순환
-  let c = colorCycle(tt);
+  // 맥동 + 성운 호흡
+  let pulse = pulseValue(tt);
+  core.scale.set(pulse, pulse, pulse);
 
-  coreMaterial.color = c;
-  nebulaMaterial.color = c;
-  starMaterial.color = c;
+  let nebulaPulse = 1.0 + Math.sin(tt * 1.2) * 0.015;
+  nebula.scale.set(nebulaPulse, nebulaPulse, nebulaPulse);
 
   renderer.render(scene, camera);
 }
