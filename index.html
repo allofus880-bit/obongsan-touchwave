@@ -2,239 +2,187 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TouchWave — Living Cosmic Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave Home v4.0 — LMH Spectrum Edition</title>
 
 <style>
-html, body {
-  margin:0;
-  overflow:hidden;
-  background:#000;
-  font-family: "Pretendard", "Noto Sans KR", sans-serif;
-  color:#e8dcff;
-}
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: "Noto Sans KR", sans-serif;
+    color: #d8f7ff;
+  }
 
-/* NAV */
-nav {
-  position:fixed;
-  top:0; left:0;
-  width:100%;
-  z-index:20;
-  display:flex;
-  justify-content:center;
-  gap:48px;
-  padding:14px 0;
-  background:rgba(0,0,0,0.33);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-nav a {
-  color:#e8dcff;
-  text-decoration:none;
-  font-size:1.05rem;
-  padding:6px 10px;
-  border-radius:8px;
-  transition:0.25s;
-}
-nav a:hover {
-  background:rgba(255,255,255,0.12);
-  box-shadow:0 0 12px rgba(140,100,255,0.55);
-}
+  /* 홈 중앙 텍스트 */
+  .center-title {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 42px;
+    font-weight: 300;
+    text-align: center;
+    color: #ffffffcc;
+    z-index: 10;
+    letter-spacing: 0.8px;
+  }
 
-/* TEXT BOX */
-#titleBox {
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 15;
-  text-align: center;
-  color: #f4ebff;
-}
+  .sub-text {
+    margin-top: 18px;
+    font-size: 18px;
+    opacity: 0.8;
+  }
 
-#titleBox h1 {
-  font-size: 3rem;
-  font-weight: 300;
-  margin: 0;
-  text-shadow: 0 0 22px rgba(160, 100, 255, 0.7);
-}
-
-#titleBox p {
-  font-size: 1.2rem;
-  margin-top: 12px;
-  opacity: 0.85;
-}
-
-#enterBtn {
-  margin-top: 26px;
-  display: inline-block;
-  padding: 12px 26px;
-  font-size: 1.1rem;
-  color: #f0e8ff;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: 0.25s;
-}
-#enterBtn:hover {
-  background: rgba(255,255,255,0.22);
-  transform: translateY(-3px);
-}
-
-canvas {
-  position:fixed;
-  top:0; left:0;
-  width:100%;
-  height:100%;
-}
+  /* 네비게이션 */
+  nav {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    z-index: 20;
+  }
+  nav a {
+    color: #dff8ff;
+    margin: 0 18px;
+    text-decoration: none;
+    font-size: 17px;
+    opacity: 0.75;
+  }
+  nav a:hover {
+    opacity: 1;
+    text-shadow: 0 0 8px #8deeff;
+  }
 </style>
 </head>
 
 <body>
 
+<!-- 네비게이션 -->
 <nav>
   <a href="index.html">Home</a>
   <a href="versions.html">Versions</a>
   <a href="philosophy.html">Philosophy</a>
-  <a href="gallery.html">Gallery</a>
-  <a href="about.html">About</a>
 </nav>
 
-<div id="titleBox">
-  <h1>TouchWave</h1>
-  <p>Cosmic Breathing · Nebula Flow · Quantum Wave</p>
-  <a id="enterBtn" href="versions.html">Enter TouchWave</a>
+<!-- 중앙 텍스트 -->
+<div class="center-title">
+  TouchWave — Living Light Universe<br>
+  <div class="sub-text">LMH 光循環 기반 우주 생성 엔진</div>
 </div>
 
-<canvas id="cosmic"></canvas>
+<!-- Three.js Core -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
 <script>
-// ========================================
-// ⭐ TouchWave Signature Animation + Galaxy Field
-// ========================================
-const canvas = document.getElementById("cosmic");
-const ctx = canvas.getContext("2d");
+/* ============================
+   기본 세팅
+============================ */
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+camera.position.z = 45;
 
-let w, h;
-function resize() {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* ============================
+   1) Galaxy Field (2만개 입자)
+============================ */
+const starGeometry = new THREE.BufferGeometry();
+const starCount = 20000;
+const positions = new Float32Array(starCount * 3);
+
+for (let i = 0; i < starCount * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 600;
 }
-resize();
-window.addEventListener("resize", resize);
+starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
-// ================================
-// ⭐ Galaxy Field (20,000 particles)
-// ================================
-const galaxyField = [];
-const galaxyCount = 20000;
+let starMaterial = new THREE.PointsMaterial({
+  size: 0.9,
+  transparent: true,
+  opacity: 0.85,
+  color: 0xffffff
+});
 
-for (let i = 0; i < galaxyCount; i++) {
-  galaxyField.push({
-    x: Math.random() * w,
-    y: Math.random() * h,
-    s: Math.random() * 1.1, // size
-    a: Math.random() * 0.35 + 0.1 // alpha
-  });
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+/* ============================
+   2) 은하 코어 + 회전
+============================ */
+const coreGeometry = new THREE.SphereGeometry(6, 64, 64);
+let coreMaterial = new THREE.MeshBasicMaterial({
+  color: 0x6688ff,
+  transparent: true,
+  opacity: 0.9
+});
+const core = new THREE.Mesh(coreGeometry, coreMaterial);
+scene.add(core);
+
+/* ============================
+   3) 성운(nebula) 레이어
+============================ */
+const nebulaGeometry = new THREE.SphereGeometry(80, 64, 64);
+let nebulaMaterial = new THREE.MeshBasicMaterial({
+  color: 0x4466ff,
+  transparent: true,
+  opacity: 0.22
+});
+const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
+scene.add(nebula);
+
+/* ============================
+   4) LMH Spectrum 색상 순환
+============================ */
+function colorCycle(t) {
+  // t는 시간 (초)
+  let r = Math.sin(t * 0.2) * 0.5 + 0.5;
+  let g = Math.sin(t * 0.2 + 2) * 0.5 + 0.5;
+  let b = Math.sin(t * 0.2 + 4) * 0.5 + 0.5;
+  return new THREE.Color(r, g, b);
 }
 
-// ================================
-// ⭐ Galaxy rotating stars
-// ================================
-const starCount = 750;
-let stars = [];
-
-for (let i = 0; i < starCount; i++) {
-  stars.push({
-    x: Math.random() * w,
-    y: Math.random() * h,
-    z: Math.random() * 2 + 0.2,
-    c: "rgba(255,255,255," + (Math.random()*0.8 + 0.2) + ")"
-  });
-}
-
-// ================================
-// ⭐ Nebula particles
-// ================================
-const nebulaCount = 160;
-let nebulas = [];
-for (let i = 0; i < nebulaCount; i++) {
-  nebulas.push({
-    x: Math.random() * w,
-    y: Math.random() * h,
-    r: Math.random()*100 + 80,
-    dx: (Math.random()*0.7 - 0.35),
-    dy: (Math.random()*0.7 - 0.35),
-    color: "hsla(" + (Math.random()*360) + ", 75%, 65%, 0.10)"
-  });
-}
-
-let tick = 0;
-
-function animate() {
-  tick += 0.003;
-
-  // breathing effect
-  const breath = (Math.sin(Date.now()*0.0008)+1)*0.5;
-
-  ctx.clearRect(0, 0, w, h);
-
-  // ============================
-  // ⭐ Galaxy Field background
-  // ============================
-  for (let g of galaxyField) {
-    ctx.fillStyle = "rgba(255,255,255," + g.a + ")";
-    ctx.fillRect(g.x, g.y, g.s, g.s);
-
-    // slight drifting
-    g.y += 0.02;
-    if (g.y > h) g.y = 0;
-  }
-
-  // ============================
-  // ⭐ Nebula Flow
-  // ============================
-  for (let n of nebulas) {
-    ctx.beginPath();
-    const rr = n.r * (1 + breath*0.25);
-    ctx.fillStyle = n.color.replace("0.10", (0.04 + breath*0.06).toFixed(2));
-    ctx.arc(n.x, n.y, rr, 0, Math.PI*2);
-    ctx.fill();
-
-    n.x += n.dx * 0.4;
-    n.y += n.dy * 0.4;
-
-    if (n.x < -200) n.x = w+200;
-    if (n.x > w+200) n.x = -200;
-    if (n.y < -200) n.y = h+200;
-    if (n.y > h+200) n.y = -200;
-  }
-
-  // ============================
-  // ⭐ Galaxy Rotation Layer
-  // ============================
-  ctx.save();
-  ctx.translate(w/2, h/2);
-  ctx.rotate(tick * 0.18);
-
-  for (let s of stars) {
-    ctx.beginPath();
-    ctx.fillStyle = s.c;
-    ctx.arc((s.x - w/2)*0.6, (s.y - h/2)*0.6, s.z, 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  ctx.restore();
-
+/* ============================
+   5) 애니메이션
+============================ */
+function animate(t) {
   requestAnimationFrame(animate);
+
+  let tt = t * 0.001;
+
+  // 성운/은하 회전
+  nebula.rotation.y += 0.0008;
+  core.rotation.y -= 0.002;
+
+  stars.rotation.y += 0.0002;
+
+  // LMH 색상 자동 순환
+  let c = colorCycle(tt);
+
+  coreMaterial.color = c;
+  nebulaMaterial.color = c;
+  starMaterial.color = c;
+
+  renderer.render(scene, camera);
 }
 
 animate();
+
+/* ============================
+   반응형
+============================ */
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 </script>
 
 </body>
 </html>
+
 
 
 
