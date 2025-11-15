@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>TouchWave v3.5 — HyperBloom MAX</title>
+<style>
+  html,body{margin:0;overflow:hidden;background:#04040A;}
+  canvas{display:block;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+let rings = [];
+let hue = 0;
+
+// HyperBloom MAX noise
+function bloomMAX(r){
+  return (
+    Math.sin(r * 0.10) * 48 +
+    Math.cos(r * 0.035) * 34 +
+    Math.sin(r * 0.018) * 24
+  );
+}
+
+// Nebula Glow (성운 안개)
+function nebulaGlow(r){
+  return Math.sin(r * 0.03) * 120;
+}
+
+canvas.addEventListener("pointerdown", e=>{
+  rings.push({
+    x: e.clientX,
+    y: e.clientY,
+    r: 0,
+    alpha: 1,
+    baseHue: hue,
+    shock: 1 // ShockWave pulse
+  });
+});
+
+function draw(){
+  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  hue = (hue + 0.25) % 360;
+
+  for(let i = rings.length - 1; i >= 0; i--){
+    let k = rings[i];
+
+    k.r += 3.2;
+    k.alpha -= 0.0065;
+
+    let bloom = bloomMAX(k.r);
+    let fog = nebulaGlow(k.r);
+    let colorHue = (k.baseHue + k.r * 0.43) % 360;
+
+    // ① Core Ring
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r, 0, Math.PI*2);
+    ctx.strokeStyle = `hsla(${colorHue},95%,72%,${k.alpha})`;
+    ctx.lineWidth = 3.0;
+    ctx.stroke();
+
+    // ② HyperBloom Petal
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r + bloom, 0, Math.PI*2);
+    ctx.strokeStyle = `hsla(${(colorHue+45)%360},95%,82%,${k.alpha * 0.55})`;
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+
+    // ③ Nebula Fog Glow (outer mist)
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r + fog, 0, Math.PI*2);
+    ctx.strokeStyle = `hsla(${(colorHue+80)%360},85%,75%,${k.alpha * 0.23})`;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // ④ ShockWave Pulse
+    if(k.shock > 0){
+      ctx.beginPath();
+      ctx.arc(k.x, k.y, k.r * 1.35, 0, Math.PI*2);
+      ctx.strokeStyle = `hsla(${colorHue},100%,90%,${k.shock * 0.45})`;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      k.shock -= 0.06; // ShockWave 감소
+    }
+
+    if(k.alpha <= 0) rings.splice(i,1);
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
