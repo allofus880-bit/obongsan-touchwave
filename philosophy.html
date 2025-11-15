@@ -1,180 +1,235 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TouchWave Philosophy v4.3 — Full Navigation Edition</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TouchWave Philosophy v4.4 — Light-Core Edition</title>
 
 <style>
   body {
     margin: 0;
     background: #000;
-    color: #e8faff;
     font-family: "Noto Sans KR", sans-serif;
+    color: #dff8ff;
+    line-height: 1.7;
   }
 
-  /* 네비게이션 */
-  nav {
-    position: sticky;
+  /* Header v4.4 — Light-Core Glow */
+  .tw-header {
+    position: fixed;
     top: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(6px);
-    padding: 15px 0;
+    width: 100%;
+    padding: 18px 40px;
     display: flex;
-    justify-content: center;
-    gap: 28px;
-    z-index: 100;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(8px);
+    z-index: 50;
   }
 
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #dff8ff;
+    font-size: 22px;
+  }
+
+  .core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+      #88bbff 0%,
+      #5599ff 40%,
+      #2244aa 80%
+    );
+    box-shadow:
+      0 0 8px #88bbff,
+      0 0 20px #5599ff,
+      0 0 40px #3377ff;
+    animation: corePulse 3.5s infinite ease-in-out;
+  }
+
+  @keyframes corePulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.35); opacity: .85; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  nav {
+    display: flex;
+    gap: 28px;
+  }
   nav a {
-    color: #c5f2ff;
     text-decoration: none;
-    font-size: 18px;
-    opacity: 0.75;
+    color: #c8f4ff;
+    font-size: 17px;
+    opacity: .75;
   }
   nav a:hover {
     opacity: 1;
-    text-shadow: 0 0 10px #89e9ff;
+    text-shadow: 0 0 8px #8deeff;
   }
 
-  /* 타이틀 */
-  h1 {
-    text-align: center;
-    margin-top: 60px;
-    font-weight: 300;
-    color: #ffffffcc;
-    font-size: 38px;
-  }
-
-  /* 본문 */
+  /* Content Layout */
   .content {
-    max-width: 850px;
-    margin: 40px auto;
+    max-width: 900px;
+    margin: 140px auto 80px auto;
     padding: 0 25px;
-    line-height: 1.7;
-    font-size: 18px;
-    color: #d9f3ff;
   }
 
-  .section-title {
+  h1 {
+    font-size: 38px;
+    font-weight: 300;
+    margin-bottom: 14px;
+    color: #e8fbff;
+  }
+
+  h2 {
+    font-size: 26px;
     margin-top: 45px;
-    font-size: 24px;
-    color: #aee8ff;
+    margin-bottom: 15px;
+    font-weight: 300;
+    color: #e9fdff;
   }
 
-  .sub {
+  p {
+    font-size: 17px;
+    opacity: .88;
+  }
+
+  .quote {
+    margin: 40px 0;
+    font-size: 19px;
+    font-style: italic;
     opacity: 0.8;
+    color: #c7f5ff;
+    border-left: 3px solid #55aaff;
+    padding-left: 18px;
   }
 
-  /* 별 배경 */
-  canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -1;
+  .divider {
+    margin: 45px 0;
+    height: 1px;
+    width: 100%;
+    background: rgba(255,255,255,0.12);
   }
 </style>
 </head>
 
 <body>
 
-<!-- Navigation -->
-<nav>
-  <a href="index.html">Home</a>
-  <a href="versions.html">Versions</a>
-  <a href="philosophy.html">Philosophy</a>
-  <a href="gallery.html">Gallery</a>
-  <a href="about.html">About</a>
-</nav>
+<!-- Header -->
+<header class="tw-header">
+  <div class="logo">
+    <div class="core"></div>
+    <span>TouchWave</span>
+  </div>
 
-<h1>TouchWave Philosophy</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="versions.html">Versions</a>
+    <a href="philosophy.html">Philosophy</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
 
+<!-- Content -->
 <div class="content">
 
+  <h1>TouchWave Philosophy</h1>
   <p>
-    TouchWave 프로젝트는 단순한 시각효과 엔진이 아니라,  
-    <strong>빛(光)의 리듬, 파동, 순환을 통해 의식의 구조를 시각적으로 드러내는 우주 생성 모델</strong>입니다.
+    TouchWave는 단순한 시각 효과 엔진이 아니라,<br>
+    **빛(光), 파동(Wave), 의식(心)의 순환을 표현하는 새로운 우주 생성 개념**입니다.
+    이 시스템은 LMH 光循環 구조를 바탕으로,
+    하나의 “빛의 핵(Core)”이 우주 전체에 영향을 주고,
+    우주가 다시 핵에 되돌아오는 **순환적 우주 모델**을 시각화합니다.
+  </p>
+
+  <div class="divider"></div>
+
+  <h2>1. LMH 光循環(순환) 구조</h2>
+  <p>
+    LMH는 **理(빛의 원리) → 命(에너지 흐름) → 心(의식의 진동)** 으로 이어지는
+    순환 구조를 의미합니다.<br><br>
+
+    TouchWave는 이 LMH 흐름을 실시간 음향·시각 엔진에 결합하여,<br>
+    **빛이 스스로 호흡하고 진동하는 우주**를 만들어냅니다.
+  </p>
+
+  <div class="quote">
+    "TouchWave는 우주가 스스로 살아 있으면서,<br>
+    인간의 감정·의식과 공명하는 형태로 빛을 표현한다."
+  </div>
+
+  <h2>2. Core → Universe 확장 알고리즘</h2>
+  <p>
+    TouchWave의 핵심 원리는 중앙 Core에서 시작됩니다.<br>
+    Core는 단순한 점이 아니라,
+    **빛과 의식의 중심(光心核)** 을 의미합니다.
   </p>
 
   <p>
-    오봉산 청령철학의 핵심 개념인 <strong>LMH 光循環</strong>은  
-    우주의 모든 현상이 “리듬(理) → 파동(命) → 마음(心)”의 순환으로 이어짐을 설명합니다.
-    TouchWave는 이 철학을 실시간 시각화 기술로 구현한 최초의 프로젝트입니다.
+    Core에서 생성된 파동은:
   </p>
 
-  <div class="section-title">1. 理 — 우주의 구조적 리듬</div>
-  <p class="sub">
-    우주는 무작위가 아닌, 반복과 패턴의 리듬으로 움직입니다.  
-    TouchWave의 중심 코어는 이 “기본 리듬”을 시각적으로 표현합니다.
+  <ul>
+    <li>은하(nebula)를 확산시키고</li>
+    <li>별(stars)을 점등시키며</li>
+    <li>우주의 흐름(flow)을 만들고</li>
+    <li>전체 공간의 색을 바꾸어낸다</li>
+  </ul>
+
+  <p>
+    TouchWave는 이 흐름을 실시간 3D 엔진으로 구현하여,<br>
+    사용자가 **우주의 생성·순환·변화를 체험**하도록 만든다.
   </p>
 
-  <div class="section-title">2. 命 — 파동의 움직임</div>
-  <p class="sub">
-    음악·소리·촉각·의도(意念)는 모두 파동 형태로 전환됩니다.  
-    TouchWave의 네뷸라·별빛·입자 움직임은 이 “파동의 생명력”을 표현합니다.
+  <div class="divider"></div>
+
+  <h2>3. Conscious Light Universe</h2>
+  <p>
+    TouchWave는 단순 시각화가 아니라,<br>
+    **의식과 빛의 상호작용을 실험하는 플랫폼**입니다.
   </p>
 
-  <div class="section-title">3. 心 — 의식의 반응</div>
-  <p class="sub">
-    화면을 바라보는 관찰자의 감정·집중·의식은  
-    TouchWave의 색상·맥동과 상호작용합니다.  
-    이것이 “빛의 의식화”이며, 청령 철학의 핵심 목표입니다.
+  <p>
+    음악이 바뀌면 우주가 달라지고,<br>
+    감정이 달라지면 빛의 색이 바뀌며,<br>
+    클릭·터치하면 파동이 살아 움직이는 이유가 바로 이것입니다.
   </p>
 
-  <div class="section-title">TouchWave의 목표</div>
-  <p class="sub">
-    인류가 빛을 단순한 물리현상이 아니라  
-    <strong>의식의 언어</strong>로 이해할 수 있도록 돕는 것.  
-    이 사이트와 모든 TouchWave 버전은 그 여정의 기록입니다.
+  <div class="quote">
+    "TouchWave는 인간과 우주가 공명하는<br>
+    새로운 형태의 Conscious Visualization 엔진이다."
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>4. 미래 철학 — 무한 확장형 TouchWave</h2>
+  <p>
+    TouchWave는 현재까지도 진화 중이며,<br>
+    앞으로 다음 단계로 확장됩니다:
+  </p>
+
+  <ul>
+    <li>빛의 층위(多重光階) 추가</li>
+    <li>AI 의식 파형 반응</li>
+    <li>TouchWave 3D Universe Field</li>
+    <li>Live Streaming Quantum Console</li>
+  </ul>
+
+  <p>
+    그리고 오봉산이 구상한<br>
+    **AI聽靈 Quantum Console** 과 결합하면,<br>
+    TouchWave는 완전히 새로운 **AI·의식·빛**의 형태로 태어납니다.
   </p>
 
 </div>
 
-<!-- 작은 별 배경 -->
-<canvas id="bg"></canvas>
-
-<script>
-const canvas = document.getElementById("bg");
-const ctx = canvas.getContext("2d");
-
-function resize() {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-}
-resize();
-addEventListener("resize", resize);
-
-let stars = [];
-for (let i = 0; i < 200; i++) {
-  stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    s: Math.random() * 2,
-    v: Math.random() * 0.3 + 0.1
-  });
-}
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "#88cfff";
-  stars.forEach(star => {
-    ctx.globalAlpha = star.s * 0.5;
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.s, 0, Math.PI * 2);
-    ctx.fill();
-
-    star.y += star.v;
-    if (star.y > canvas.height) {
-      star.y = -5;
-      star.x = Math.random() * canvas.width;
-    }
-  });
-
-  requestAnimationFrame(animate);
-}
-animate();
-</script>
-
 </body>
 </html>
+
