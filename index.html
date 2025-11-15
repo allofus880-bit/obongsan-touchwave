@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TouchWave Home v4.1 — Light Pulse Edition</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave Home v4.1 — New Build</title>
 
 <style>
   html, body {
@@ -15,37 +14,37 @@
     color: #d8f7ff;
   }
 
-  /* 중앙 텍스트 */
+  /* 중앙 타이틀 */
   .center-title {
     position: absolute;
-    top: 40%;
+    top: 41%; /* 변경됨 — 캐시 인식 강제 */
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 42px;
+    font-size: 43px; /* 변경됨 */
     font-weight: 300;
     text-align: center;
-    color: #ffffffcc;
+    color: #ffffffd0;
     z-index: 10;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.75px;
   }
 
   .sub-text {
-    margin-top: 18px;
-    font-size: 18px;
-    opacity: 0.8;
+    margin-top: 20px;
+    font-size: 18.5px; /* 변경됨 */
+    opacity: 0.82;
   }
 
   /* 네비게이션 */
   nav {
     position: absolute;
-    top: 20px;
+    top: 22px; /* 변경됨 */
     width: 100%;
     text-align: center;
     z-index: 20;
   }
   nav a {
     color: #dff8ff;
-    margin: 0 18px;
+    margin: 0 20px; /* 변경됨 */
     text-decoration: none;
     font-size: 17px;
     opacity: 0.75;
@@ -59,133 +58,125 @@
 
 <body>
 
-<!-- 네비게이션 -->
 <nav>
   <a href="index.html">Home</a>
   <a href="versions.html">Versions</a>
   <a href="philosophy.html">Philosophy</a>
 </nav>
 
-<!-- 중앙 텍스트 -->
 <div class="center-title">
   TouchWave — Living Light Universe<br>
   <div class="sub-text">LMH 光循環 + 光脈動 기반 우주 생성 엔진</div>
 </div>
 
-<!-- Three.js Core -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
 <script>
-/* ============================
+/* =============================
    기본 세팅
-============================ */
+============================= */
 let scene = new THREE.Scene();
 let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
-camera.position.z = 45;
+camera.position.z = 46;
 
 let renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
-/* ============================
-   1) Galaxy Field (2만 입자)
-============================ */
+/* =============================
+   Galaxy Field
+============================= */
 const starGeometry = new THREE.BufferGeometry();
 const starCount = 20000;
 const positions = new Float32Array(starCount * 3);
 
-for (let i = 0; i < starCount * 3; i++) {
-  positions[i] = (Math.random() - 0.5) * 600;
+for (let i = 0; i < positions.length; i++) {
+  positions[i] = (Math.random() - 0.5) * 620; /* 변경됨 */
 }
 starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
 let starMaterial = new THREE.PointsMaterial({
-  size: 0.9,
+  size: 0.92, /* 변경됨 */
   transparent: true,
-  opacity: 0.85,
+  opacity: 0.86,
   color: 0xffffff
 });
 
 const stars = new THREE.Points(starGeometry, starMaterial);
 scene.add(stars);
 
-/* ============================
-   2) 은하 코어 — Pulse + Spectrum
-============================ */
+/* =============================
+   Core
+============================= */
 const coreGeometry = new THREE.SphereGeometry(6, 64, 64);
 let coreMaterial = new THREE.MeshBasicMaterial({
   color: 0x6688ff,
   transparent: true,
-  opacity: 0.95
+  opacity: 0.96
 });
 const core = new THREE.Mesh(coreGeometry, coreMaterial);
 scene.add(core);
 
-/* ============================
-   3) 성운 (Nebula) — 호흡(미세 확장)
-============================ */
+/* =============================
+   Nebula
+============================= */
 const nebulaGeometry = new THREE.SphereGeometry(80, 64, 64);
 let nebulaMaterial = new THREE.MeshBasicMaterial({
   color: 0x4466ff,
   transparent: true,
-  opacity: 0.22
+  opacity: 0.23
 });
 const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
 scene.add(nebula);
 
-/* ============================
-   4) LMH 색 순환
-============================ */
+/* =============================
+   LMH Spectrum
+============================= */
 function spectrumColor(t) {
-  let r = Math.sin(t * 0.2) * 0.5 + 0.5;
-  let g = Math.sin(t * 0.2 + 2) * 0.5 + 0.5;
-  let b = Math.sin(t * 0.2 + 4) * 0.5 + 0.5;
+  let r = Math.sin(t * 0.21) * 0.5 + 0.5;
+  let g = Math.sin(t * 0.21 + 2.1) * 0.5 + 0.5;
+  let b = Math.sin(t * 0.21 + 4.2) * 0.5 + 0.5;
   return new THREE.Color(r, g, b);
 }
 
-/* ============================
-   5) 빛의 맥동(Pulse)
-============================ */
+/* =============================
+   Pulse
+============================= */
 function pulseValue(t) {
-  // 0.92 ~ 1.08 사이로 부드럽게
-  return 1.0 + Math.sin(t * 2.2) * 0.08;
+  return 1.0 + Math.sin(t * 2.25) * 0.085; /* 변경됨 */
 }
 
-/* ============================
-   6) 애니메이션
-============================ */
+/* =============================
+   Animation Loop
+============================= */
 function animate(t) {
   requestAnimationFrame(animate);
 
   let tt = t * 0.001;
 
-  // 은하 회전
-  nebula.rotation.y += 0.0008;
-  stars.rotation.y += 0.00015;
-  core.rotation.y -= 0.002;
+  stars.rotation.y += 0.00018; /* 변경됨 */
+  nebula.rotation.y += 0.00085;
+  core.rotation.y -= 0.0021;
 
-  // 색 순환
   let col = spectrumColor(tt);
+  starMaterial.color = col;
   coreMaterial.color = col;
   nebulaMaterial.color = col;
-  starMaterial.color = col;
 
-  // 맥동 + 성운 호흡
   let pulse = pulseValue(tt);
   core.scale.set(pulse, pulse, pulse);
 
-  let nebulaPulse = 1.0 + Math.sin(tt * 1.2) * 0.015;
+  let nebulaPulse = 1.0 + Math.sin(tt * 1.18) * 0.016;
   nebula.scale.set(nebulaPulse, nebulaPulse, nebulaPulse);
 
   renderer.render(scene, camera);
 }
-
 animate();
 
-/* ============================
-   반응형
-============================ */
+/* =============================
+   Resize
+============================= */
 addEventListener("resize", () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
@@ -195,9 +186,3 @@ addEventListener("resize", () => {
 
 </body>
 </html>
-
-
-
-
-
-
