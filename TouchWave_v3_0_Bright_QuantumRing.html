@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v3.0 — Bright QuantumRing Edition</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    background: radial-gradient(circle at center, #0a0a18, #000);
+    touch-action: none;
+  }
+  #info {
+    position: fixed; 
+    top: 20px; 
+    left: 20px;
+    color: #e8faff; 
+    font-size: 15px; 
+    font-family: sans-serif;
+    background: rgba(255,255,255,0.12);
+    padding: 8px 12px; 
+    border-radius: 8px;
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 1.2s ease;
+  }
+</style>
+</head>
+<body>
+
+<div id="info">TouchWave v3.0 — Bright QuantumRing<br>화면 터치/클릭 → 밝은 3D 파동 생성</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+let scene, camera, renderer;
+let rings = [];
+let hue = 0;
+
+// ▷ 안내문 2초 후 사라짐
+setTimeout(() => {
+  const info = document.getElementById("info");
+  info.style.opacity = "0";
+  setTimeout(() => info.remove(), 1300);
+}, 2000);
+
+// ▷ 3D 세팅
+scene = new THREE.Scene();
+camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 5000);
+camera.position.z = 40;
+
+renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+// ▷ 라이트 (훨씬 밝게)
+const light = new THREE.PointLight(0xffffff, 1.8);
+light.position.set(0, 0, 20);
+scene.add(light);
+
+const ambient = new THREE.AmbientLight(0xffffff, 1.4);
+scene.add(ambient);
+
+// ▷ 밝은 링 생성
+function createRing() {
+  const geometry = new THREE.TorusGeometry(3, 0.25, 16, 100);
+
+  const color = new THREE.Color("hsl(" + hue + ", 95%, 60%)");  
+  const material = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.60   // 밝아짐 + 선명함
+  });
+
+  const ring = new THREE.Mesh(geometry, material);
+  ring.scale.set(0.1, 0.1, 0.1);
+
+  rings.push({ mesh: ring, life: 0 });
+  scene.add(ring);
+}
+
+// ▷ 클릭 → 파동
+function triggerWave() {
+  createRing();
+}
+window.addEventListener("pointerdown", triggerWave);
+window.addEventListener("touchstart", triggerWave);
+
+// ▷ 애니메이션
+function animate() {
+  requestAnimationFrame(animate);
+
+  hue = (hue + 0.3) % 360;
+
+  for (let i = rings.length - 1; i >= 0; i--) {
+    const r = rings[i];
+    r.life += 1;
+
+    r.mesh.scale.x += 0.025;
+    r.mesh.scale.y += 0.025;
+    r.mesh.scale.z += 0.025;
+
+    r.mesh.rotation.x += 0.012;
+    r.mesh.rotation.y += 0.009;
+
+    const newColor = new THREE.Color("hsl(" + ((hue + r.life * 1.1) % 360) + ", 95%, 63%)");
+    r.mesh.material.color = newColor;
+
+    r.mesh.material.opacity -= 0.005;
+
+    if (r.mesh.material.opacity <= 0) {
+      scene.remove(r.mesh);
+      rings.splice(i, 1);
+    }
+  }
+
+  camera.rotation.z += 0.0006;
+  renderer.render(scene, camera);
+}
+animate();
+
+// ▷ 반응형
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
