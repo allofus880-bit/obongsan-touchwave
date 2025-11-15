@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave — Cosmic Gallery</title>
+
+<style>
+/* GLOBAL */
+body {
+  margin: 0;
+  background: radial-gradient(circle at center, #0b0b12 0%, #000 100%);
+  color: #e5e7ff;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  padding-top: 90px;
+}
+
+/* NAVBAR */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 14px 0;
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.33);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+nav a {
+  color: #e8dcff;
+  text-decoration: none;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: 0.25s;
+}
+nav a:hover {
+  background: rgba(255,255,255,0.12);
+  box-shadow: 0 0 10px rgba(130,80,255,0.45);
+  transform: translateY(-2px);
+}
+
+.container {
+  width: min(1000px, 92%);
+  margin: auto;
+}
+
+/* TITLE */
+h1 {
+  margin-top: 20px;
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: #e5d9ff;
+  text-shadow: 0 0 12px rgba(120,80,255,0.55);
+}
+
+/* GALLERY GRID */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+  margin-top: 40px;
+}
+
+/* CARD */
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 14px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 18px rgba(150,100,255,0.25);
+  transition: 0.25s;
+}
+.card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 25px rgba(180,120,255,0.45);
+}
+
+/* IMAGE */
+.card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+/* CAPTION */
+.caption {
+  font-size: 1.05rem;
+  color: #dcd5ff;
+  text-align: center;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html">Home</a>
+  <a href="versions.html">Versions</a>
+  <a href="philosophy.html">Philosophy</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="about.html">About</a>
+</nav>
+
+<div class="container">
+  <h1>TouchWave Cosmic Gallery</h1>
+
+  <div class="gallery">
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564" />
+      <div class="caption">Nebula — 성운 파동</div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3" />
+      <div class="caption">Milky Way — 은하 신전</div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1447433819943-74a20887a81e" />
+      <div class="caption">Cosmic Pulse — 우주 파동</div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1447433904450-4a6f2d5b5cc6" />
+      <div class="caption">Quantum Light — 양자 빛</div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1447433912055-0d5bf6db8bb2" />
+      <div class="caption">Aurora Layer — 오로라 층</div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3" />
+      <div class="caption">Stardust Flow — 별빛 흐름</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
