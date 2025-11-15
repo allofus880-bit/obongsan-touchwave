@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave v5.5 — Quantum Light Tunnel Edition</title>
+
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: "Noto Sans KR", sans-serif;
+    color: #d8f7ff;
+  }
+
+  /* 파일 선택 버튼 */
+  #fileInput {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #88ccff;
+    color: #d8f7ff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<input type="file" id="fileInput" accept="audio/*" multiple />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+<script>
+/* =====================================================
+   기본 세팅
+===================================================== */
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, 0.1, 3000);
+camera.position.z = 5;
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* =====================================================
+   오디오 세팅
+===================================================== */
+let listener = new THREE.AudioListener();
+camera.add(listener);
+
+let audio = new THREE.Audio(listener);
+let audioLoader = new THREE.AudioLoader();
+let analyser = new THREE.AudioAnalyser(audio, 256);
+
+let playlist = [];
+let currentTrack = 0;
+
+/* 파일 선택 시 */
+document.getElementById("fileInput").addEventListener("change", function(evt) {
+  playlist = Array.from(evt.target.files);
+  currentTrack = 0;
+
+  document.getElementById("fileInput").style.display = "none"; // 버튼 숨김
+
+  playNext();
+});
+
+function playNext() {
+  if (playlist.length === 0) return;
+  let file = playlist[currentTrack];
+  let url = URL.createObjectURL(file);
+
+  audioLoader.load(url, function(buffer) {
+    audio.setBuffer(buffer);
+    audio.setLoop(false);
+    audio.play();
+  });
+
+  audio.onEnded = () => {
+    currentTrack++;
+    if (currentTrack >= playlist.length) currentTrack = 0; // 반복 재생
+    playNext();
+  };
+}
+
+/* =====================================================
+   Quantum Light Tunnel 생성
+===================================================== */
+let tunnelGroup = new THREE.Group();
+scene.add(tunnelGroup);
+
+let tunnelRadius = 15;
+let tunnelLength = 200;
+let segmentCount = 120;
+
+let tunnelGeometry = new THREE.CylinderGeometry(
+  tunnelRadius, tunnelRadius,
+  tunnelLength, 64, segmentCount, true
+);
+// 안쪽이 보이도록 뒤집기
+tunnelGeometry.scale(1, 1, -1);
+
+let tunnelMaterial = new THREE.MeshBasicMaterial({
+  color: 0x3344ff,
+  transparent: true,
+  opacity: 0.32,
+  side: THREE.BackSide
+});
+
+let tunnelMesh = new THREE.Mesh(tunnelGeometry, tunnelMaterial);
+tunnelGroup.add(tunnelMesh);
+
+/* =====================================================
+   Core 중심 구
+===================================================== */
+let coreGeometry = new THREE.SphereGeometry(1.5, 64, 64);
+let coreMaterial = new THREE.MeshBasicMaterial({
+  color: 0x7799ff,
+  transparent: true,
+  opacity: 0.95
+});
+let core = new THREE.Mesh(coreGeometry, coreMaterial);
+scene.add(core);
+
+/* =====================================================
+   Pulse Rings (파동 링)
+===================================================== */
+let rings = [];
+for (let i = 0; i < 2; i++) {
+  let ringGeo = new THREE.RingGeometry(2, 2.4, 128);
+  let ringMat = new THREE.MeshBasicMaterial({
+    color: 0x88aaff,
+    transparent: true,
+    opacity: 0.6,
+    side: THREE.DoubleSide
+  });
+  let ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.z = -i * 3;
+  scene.add(ring);
+  rings.push(ring);
+}
+
+/* =====================================================
+   Spark Particles
+===================================================== */
+let sparkGeo = new THREE.BufferGeometry();
+let sparkCount = 2000;
+let sparkPos = new Float32Array(sparkCount * 3);
+for (let i = 0; i < sparkCount * 3; i++) {
+  sparkPos[i] = (Math.random() - 0.5) * 60;
+}
+sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPos, 3));
+
+let sparkMat = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: 0.6,
+  transparent: true,
+  opacity: 0.9
+});
+
+let sparks = new THREE.Points(sparkGeo, sparkMat);
+scene.add(sparks);
+
+/* =====================================================
+   색상 변환
+===================================================== */
+function spectrumColor(t) {
+  return new THREE.Color(
+    Math.sin(t * 0.3) * 0.5 + 0.5,
+    Math.sin(t * 0.3 + 2) * 0.5 + 0.5,
+    Math.sin(t * 0.3 + 4) * 0.5 + 0.5
+  );
+}
+
+/* =====================================================
+   터치/클릭으로 방향 조절
+===================================================== */
+let rotateY = 0;
+
+addEventListener("pointermove", (e) => {
+  let x = e.clientX / innerWidth;
+  rotateY = (x - 0.5) * 0.25;
+});
+
+/* =====================================================
+   Animation
+===================================================== */
+function animate(t) {
+  requestAnimationFrame(animate);
+
+  let tt = t * 0.001;
+  let freq = analyser.getAverageFrequency();
+
+  /* 색상 */
+  let col = spectrumColor(tt + freq * 0.01);
+  coreMaterial.color.copy(col);
+  tunnelMaterial.color.copy(col);
+  sparkMat.color.copy(col);
+
+  /* 터널 이동 */
+  tunnelGroup.position.z -= 0.25 + freq * 0.002;
+  if (tunnelGroup.position.z < -100) tunnelGroup.position.z = 0;
+
+  /* 회전 */
+  tunnelGroup.rotation.y += rotateY * 0.07;
+
+  /* Pulse Rings */
+  rings.forEach((r, i) => {
+    let s = 1 + Math.sin(tt * 3 + i) * 0.2 + freq * 0.002;
+    r.scale.set(s, s, s);
+    r.material.opacity = 0.35 + Math.sin(tt * 4 + i) * 0.25;
+  });
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* 화면 리사이즈 */
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+</body>
+</html>
