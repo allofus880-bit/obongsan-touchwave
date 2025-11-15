@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v4.5 — HyperBloom Core Edition</title>
+<style>
+    html, body {
+        margin: 0;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #070710 0%, #000 100%);
+        touch-action: none;
+    }
+    canvas { display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+class HyperBloom {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+
+        this.r1 = 0;   // Core Bloom
+        this.r2 = 0;   // Mid Bloom
+        this.r3 = 0;   // Outer Bloom
+
+        this.alpha = 1;
+
+        this.baseHue = 180 + Math.random() * 80;
+        this.rot = Math.random() * Math.PI * 2;
+        this.rotSpeed = 0.02 + Math.random() * 0.02;
+
+        this.s1 = 1.8 + Math.random() * 1.0;
+        this.s2 = 1.2 + Math.random() * 0.8;
+        this.s3 = 0.8 + Math.random() * 0.6;
+    }
+
+    update() {
+        this.r1 += this.s1;
+        this.r2 += this.s2;
+        this.r3 += this.s3;
+
+        this.rot += this.rotSpeed;
+
+        this.alpha -= 0.006;
+    }
+
+    drawPetalRing(radius, hue, size, aMul) {
+        const petals = 6;
+
+        for (let i = 0; i < petals; i++) {
+            const angle = this.rot + (i * Math.PI * 2) / petals;
+            const px = this.x + Math.cos(angle) * radius;
+            const py = this.y + Math.sin(angle) * radius;
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${this.alpha * aMul})`;
+            ctx.arc(px, py, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = `hsla(${hue + 20}, 100%, 90%, ${this.alpha * aMul * 0.7})`;
+            ctx.arc(px, py, size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawShell(radius, hue, width, aMul) {
+        ctx.beginPath();
+        ctx.strokeStyle = `hsla(${hue}, 100%, 75%, ${this.alpha * aMul})`;
+        ctx.lineWidth = width;
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    draw() {
+        this.drawPetalRing(this.r1, this.baseHue + 40, 16, 1.0);
+        this.drawPetalRing(this.r2, this.baseHue, 12, 0.7);
+        this.drawPetalRing(this.r3, this.baseHue - 20, 9, 0.45);
+
+        this.drawShell(this.r1 * 0.85, this.baseHue + 60, 2, 0.9);
+        this.drawShell(this.r2 * 0.9, this.baseHue + 20, 1, 0.5);
+    }
+}
+
+let blooms = [];
+
+window.addEventListener("pointerdown", e => {
+    blooms.push(new HyperBloom(e.clientX, e.clientY));
+});
+window.addEventListener("pointermove", e => {
+    if (e.pressure > 0) blooms.push(new HyperBloom(e.clientX, e.clientY));
+});
+
+function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.065)";
+    ctx.fillRect(0, 0, w, h);
+
+    blooms.forEach((b, i) => {
+        b.update();
+        b.draw();
+        if (b.alpha <= 0) blooms.splice(i, 1);
+    });
+
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
