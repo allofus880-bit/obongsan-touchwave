@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TouchWave v2.4 — AuroraFlow Edition</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    touch-action: none;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="touchwave"></canvas>
+
+<script>
+const canvas = document.getElementById("touchwave");
+const ctx = canvas.getContext("2d");
+
+let w, h;
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let waves = [];
+
+class AuroraWave {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 0;
+    this.alpha = 1;
+    this.speed = 0.45 + Math.random()*0.3;
+    
+    this.hue = Math.random()*360;
+    this.hueShift = Math.random()*20 + 10;
+
+    this.lineWidth = 2.5 + Math.random()*0.8;
+  }
+
+  update() {
+    this.radius += this.speed * 3.0;
+
+    this.hue += this.hueShift * 0.02;
+
+    this.alpha -= 0.009;
+
+    return this.alpha > 0;
+  }
+
+  draw() {
+    const grad = ctx.createRadialGradient(
+      this.x, this.y, this.radius * 0.2,
+      this.x, this.y, this.radius
+    );
+
+    const c1 = `hsla(${this.hue}, 100%, 75%, ${this.alpha})`;   // 오로라 중심색
+    const c2 = `hsla(${this.hue + 40}, 80%, 65%, ${this.alpha * 0.6})`; // 외곽
+    const c3 = `rgba(255,255,255, ${this.alpha * 0.4})`;         // Core Glow
+
+    grad.addColorStop(0.0, c3);
+    grad.addColorStop(0.45, c1);
+    grad.addColorStop(1.0, c2);
+
+    ctx.beginPath();
+    ctx.lineWidth = this.lineWidth;
+    ctx.strokeStyle = grad;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    ctx.stroke();
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  ctx.fillStyle = "rgba(0,0,0,0.15)";
+  ctx.fillRect(0,0,w,h);
+
+  waves = waves.filter(w=>w.update());
+  waves.forEach(w=>w.draw());
+}
+animate();
+
+function emit(e) {
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+  for (let i=0; i<2; i++) waves.push(new AuroraWave(x, y));
+}
+
+window.addEventListener("pointerdown", emit);
+window.addEventListener("touchstart", emit);
+</script>
+
+</body>
+</html>
