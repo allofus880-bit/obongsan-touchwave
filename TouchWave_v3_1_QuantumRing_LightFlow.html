@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>TouchWave v3.1 — QuantumRing+ LightFlow</title>
+<style>
+  html,body { margin: 0; overflow: hidden; background: #080810; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+let rings = [];
+let hue = 0;
+
+canvas.addEventListener("pointerdown", (e) => {
+  rings.push({
+    x: e.clientX,
+    y: e.clientY,
+    r: 0,
+    alpha: 1,
+    hueOffset: hue,
+  });
+});
+
+function draw() {
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  hue = (hue + 0.3) % 360;
+
+  for (let i = rings.length - 1; i >= 0; i--) {
+    let k = rings[i];
+    k.r += 2.2;
+    k.alpha -= 0.007;
+
+    let c = (k.hueOffset + k.r * 0.35) % 360;
+
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsla(${c}, 95%, 65%, ${k.alpha})`;
+    ctx.lineWidth = 3 + (k.r * 0.015);
+    ctx.stroke();
+
+    if (k.alpha <= 0) rings.splice(i,1);
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
