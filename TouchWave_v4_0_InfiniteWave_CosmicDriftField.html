@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TouchWave v4.0 — InfiniteWave Cosmic Drift Field</title>
+<style>
+    html,body{
+        margin:0;overflow:hidden;
+        background:#000;
+        touch-action:none;
+    }
+    canvas{display:block;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
+
+let w,h;
+function resize(){
+    w=canvas.width=window.innerWidth;
+    h=canvas.height=window.innerHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+const particles=[];
+const ripples=[];
+
+// Drift 방향 (천천히 변함)
+let driftAngle=Math.random()*Math.PI*2;
+let driftTimer=0;
+
+// 초기 입자 생성
+for(let i=0;i<260;i++){
+    particles.push({
+        x:Math.random()*w,
+        y:Math.random()*h,
+        size:Math.random()*1.6+0.5,
+        vx:(Math.random()-0.5)*0.25,
+        vy:(Math.random()-0.5)*0.25
+    });
+}
+
+function addRipple(x,y){
+    ripples.push({
+        x,y,
+        t:0,
+        max:Math.max(w,h)*1.1,
+        speed:0.022,
+        dir:(Math.random()*Math.PI*2)
+    });
+}
+
+window.addEventListener("pointerdown",e=>{
+    addRipple(e.clientX,e.clientY);
+});
+
+// 뒤에서 흐르는 Cosmic Drift Layer
+function updateDrift(){
+    driftTimer++;
+    if(driftTimer>260){
+        driftTimer=0;
+        driftAngle+= (Math.random()*0.8 - 0.4);  // 방향 변화
+    }
+}
+
+function drawParticles(){
+    const dx=Math.cos(driftAngle)*0.35;
+    const dy=Math.sin(driftAngle)*0.35;
+
+    for(let p of particles){
+        p.x+=p.vx+dx;
+        p.y+=p.vy+dy;
+
+        if(p.x<0)p.x=w;
+        if(p.x>w)p.x=0;
+        if(p.y<0)p.y=h;
+        if(p.y>h)p.y=0;
+
+        ctx.fillStyle="rgba(200,220,255,0.25)";
+        ctx.fillRect(p.x,p.y,p.size,p.size);
+    }
+}
+
+function draw(){
+    ctx.clearRect(0,0,w,h);
+
+    updateDrift();
+    drawParticles();
+
+    for(let r of ripples){
+        r.t+=r.speed;
+        const radius=r.t*r.max;
+        const alpha=Math.max(0,1-r.t);
+        const dx=Math.cos(r.dir)*radius*0.12;
+        const dy=Math.sin(r.dir)*radius*0.12;
+
+        // 색상 계열 (선명하게)
+        const colors=[
+            `rgba(255,255,255,${alpha*0.80})`,
+            `rgba(170,220,255,${alpha*0.60})`,
+            `rgba(130,180,255,${alpha*0.48})`,
+            `rgba(90,140,255,${alpha*0.36})`,
+            `rgba(70,110,230,${alpha*0.30})`,
+            `rgba(50,80,200,${alpha*0.24})`,
+            `rgba(30,50,150,${alpha*0.18})`
+        ];
+
+        // 7중 Shell (PRIME에서 +2개 향상)
+        const multipliers=[1.34, 1.18, 1.02, 0.86, 0.72, 0.60, 0.48];
+        const widths=[0.015,0.013,0.011,0.0095,0.008,0.0065,0.005];
+
+        for(let i=0;i<7;i++){
+            ctx.beginPath();
+            ctx.arc(
+                r.x+(dx*(i/7)*0.5),
+                r.y+(dy*(i/7)*0.5),
+                radius*multipliers[i],
+                0,Math.PI*2
+            );
+            ctx.strokeStyle=colors[i];
+            ctx.lineWidth=radius*widths[i];
+            ctx.stroke();
+        }
+    }
+
+    for(let i=ripples.length-1;i>=0;i--){
+        if(ripples[i].t>=1) ripples.splice(i,1);
+    }
+
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
