@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>TouchWave v3.4 — HyperBloom Edition</title>
+<style>
+  html,body{margin:0;overflow:hidden;background:#05050C;}
+  canvas{display:block;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+let rings = [];
+let hue = 0;
+
+// HyperBloom Noise (크게 터지는 꽃잎)
+function hyperBloom(r){
+  return (
+    Math.sin(r * 0.12) * 35 +
+    Math.cos(r * 0.04) * 25 +
+    Math.sin(r * 0.025) * 15
+  );
+}
+
+canvas.addEventListener("pointerdown", e=>{
+  rings.push({
+    x: e.clientX,
+    y: e.clientY,
+    r: 0,
+    alpha: 1,
+    baseHue: hue
+  });
+});
+
+function draw(){
+  ctx.fillStyle = "rgba(0,0,0,0.13)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  hue = (hue + 0.22) % 360;
+
+  for(let i = rings.length - 1; i >= 0; i--){
+    let k = rings[i];
+
+    k.r += 2.8;        // 확산속도 더 빠르게 (시네마틱)
+    k.alpha -= 0.0068; // 여운 길게
+
+    let bloom = hyperBloom(k.r);
+    let colorHue = (k.baseHue + k.r * 0.42) % 360;
+
+    // ① Base Ring
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r, 0, Math.PI*2);
+    ctx.strokeStyle = `hsla(${colorHue},95%,70%,${k.alpha})`;
+    ctx.lineWidth = 2.8;
+    ctx.stroke();
+
+    // ② Mid Bloom (중간 꽃잎)
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r + bloom * 0.55, 0, Math.PI*2);
+    ctx.strokeStyle = `hsla(${(colorHue+20)%360},95%,78%,${k.alpha*0.55})`;
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+
+    // ③ Outer HyperBloom (가장 큰 꽃잎)
+    ctx.beginPath();
+    ctx.arc(k.x, k.y, k.r + bloom, 0, Math.PI*2);
+    ctx.strokeStyle = `hsla(${(colorHue+45)%360},95%,85%,${k.alpha*0.40})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    if(k.alpha <= 0) rings.splice(i,1);
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
