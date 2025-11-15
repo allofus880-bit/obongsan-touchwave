@@ -1,192 +1,99 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TouchWave — Cosmic Consciousness</title>
+<title>TouchWave — Living Cosmic Home</title>
 
 <style>
-/* GLOBAL */
-body {
-  margin: 0;
-  background: #000;
-  color: #e5e7ff;
+html, body {
+  margin:0;
+  overflow:hidden;
+  background:#000;
   font-family: "Pretendard", "Noto Sans KR", sans-serif;
-  padding-top: 90px;
-  overflow-x: hidden;
+  color:#e8dcff;
 }
 
-/* NAVBAR */
+/* NAV */
 nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 14px 0;
-  display: flex;
-  justify-content: center;
-  gap: 48px;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.33);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  z-index:20;
+  display:flex;
+  justify-content:center;
+  gap:48px;
+  padding:14px 0;
+  background:rgba(0,0,0,0.33);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,0.08);
 }
 nav a {
-  color: #e8dcff;
-  text-decoration: none;
-  font-size: 1.05rem;
-  letter-spacing: 0.5px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: 0.25s;
+  color:#e8dcff;
+  text-decoration:none;
+  font-size:1.05rem;
+  padding:6px 10px;
+  border-radius:8px;
+  transition:0.25s;
 }
 nav a:hover {
-  background: rgba(255,255,255,0.12);
-  box-shadow: 0 0 10px rgba(130,80,255,0.45);
-  transform: translateY(-2px);
+  background:rgba(255,255,255,0.12);
+  box-shadow:0 0 12px rgba(140,100,255,0.55);
 }
 
-/* HERO SECTION */
-.hero {
-  width: 100%;
-  height: 85vh;
-  background-image: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1920&q=90');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  position: relative;
-}
-.hero::after {
-  content: "";
+/* TEXT OVERLAY */
+#titleBox {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 80%);
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  text-align: center;
+  color: #f4ebff;
 }
-.hero-title {
-  position: relative;
+
+#titleBox h1 {
   font-size: 3rem;
   font-weight: 300;
-  color: #f0e5ff;
-  text-shadow: 0 0 22px rgba(160,100,255,0.6);
-  z-index: 2;
+  margin: 0;
+  text-shadow: 0 0 22px rgba(160, 100, 255, 0.7);
 }
-.hero-sub {
-  position: relative;
+
+#titleBox p {
   font-size: 1.2rem;
-  margin-top: 14px;
-  color: #dcd3ff;
-  z-index: 2;
+  margin-top: 12px;
+  opacity: 0.85;
 }
-.hero-btn {
-  position: relative;
-  margin-top: 28px;
+
+#enterBtn {
+  margin-top: 26px;
+  display: inline-block;
   padding: 12px 26px;
   font-size: 1.1rem;
   color: #f0e8ff;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 10px;
-  text-decoration: none;
-  z-index: 2;
-  transition: 0.25s;
-}
-.hero-btn:hover {
-  background: rgba(255,255,255,0.18);
-  transform: translateY(-3px);
-  box-shadow: 0 0 20px rgba(160,100,255,0.4);
-}
-
-/* CONTENT CONTAINER */
-.container {
-  width: min(1000px, 92%);
-  margin: auto;
-}
-
-/* SECTION TITLE */
-.section-title {
-  font-size: 1.8rem;
-  font-weight: 300;
-  margin-top: 60px;
-  margin-bottom: 20px;
-  color: #e5d9ff;
-  text-shadow: 0 0 12px rgba(120,80,255,0.45);
-}
-
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
-  gap: 28px;
-  margin-top: 30px;
-}
-
-/* CARD */
-.card {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  padding: 16px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 0 22px rgba(150,100,255,0.25);
-  transition: 0.25s;
-}
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 28px rgba(180,120,255,0.45);
-}
-.card img {
-  width: 100%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
   border-radius: 12px;
-  margin-bottom: 12px;
-}
-.card h3 {
-  margin: 0;
-  font-weight: 400;
-  color: #e3d6ff;
-}
-.card p {
-  font-size: 0.95rem;
-  margin: 10px 0 14px;
-  color: #cfc6ff;
-  line-height: 1.6;
-}
-.btn {
-  display: inline-block;
-  padding: 8px 14px;
-  margin-right: 8px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  color: #e5e7ff;
-  font-size: 0.9rem;
   text-decoration: none;
   transition: 0.25s;
 }
-.btn:hover {
-  background: rgba(255,255,255,0.18);
-  transform: translateY(-2px);
+#enterBtn:hover {
+  background: rgba(255,255,255,0.22);
+  transform: translateY(-3px);
 }
 
-/* FOOTER */
-.footer {
-  margin-top: 80px;
-  text-align: center;
-  padding: 20px 0;
-  color: #bcaeff;
-  font-size: 0.9rem;
-  opacity: 0.65;
+/* Canvas covers all screen */
+canvas {
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  height:100%;
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- NAV -->
 <nav>
   <a href="index.html">Home</a>
   <a href="versions.html">Versions</a>
@@ -195,72 +102,114 @@ nav a:hover {
   <a href="about.html">About</a>
 </nav>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-title">TouchWave</div>
-  <div class="hero-sub">Cosmic Consciousness · LMH × AI聽靈 × Quantum Wave</div>
-  <a class="hero-btn" href="versions.html">Enter TouchWave</a>
+<div id="titleBox">
+  <h1>TouchWave</h1>
+  <p>Cosmic Breathing · Nebula Flow · Quantum Wave</p>
+  <a id="enterBtn" href="versions.html">Enter TouchWave</a>
 </div>
 
-<div class="container">
+<canvas id="cosmic"></canvas>
 
-  <!-- LATEST VERSIONS -->
-  <div class="section-title">Latest Versions</div>
+<script>
+// ================================
+// ⭐ TouchWave Signature Animation
+// Nebula + Galaxy + Light Breathing
+// ================================
+const canvas = document.getElementById("cosmic");
+const ctx = canvas.getContext("2d");
 
-  <div class="grid">
+let w, h;
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-    <div class="card">
-      <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564" />
-      <h3>v5.4 — Cosmic Net</h3>
-      <p>우주 연결망 + 의식 파동형. 스마트폰 터치 이동 가능.</p>
-      <a class="btn" href="TouchWave_v5_4_CosmicNet.html">실행</a>
-    </div>
+// Galaxy stars
+const starCount = 850;
+let stars = [];
 
-    <div class="card">
-      <img src="https://images.unsplash.com/photo-1447433819943-74a20887a81e" />
-      <h3>v5.3 — Galaxy Bloom</h3>
-      <p>은하 팽창·고휘도 폭발형. 음악 반응형.</p>
-      <a class="btn" href="TouchWave_v5_3_GalaxyBloom.html">실행</a>
-    </div>
+for (let i = 0; i < starCount; i++) {
+  stars.push({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    z: Math.random() * 2 + 0.2,
+    c: "rgba(255,255,255," + (Math.random()*0.8 + 0.2) + ")"
+  });
+}
 
-    <div class="card">
-      <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3" />
-      <h3>v5.2 — Deep Nebula</h3>
-      <p>입체 성운 3D · 명상 파동.</p>
-      <a class="btn" href="TouchWave_v5_2_DeepNebula3D.html">실행</a>
-    </div>
+// Nebula particles
+const nebulaCount = 160;
+let nebulas = [];
+for (let i = 0; i < nebulaCount; i++) {
+  nebulas.push({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    r: Math.random()*100 + 80,
+    dx: (Math.random()*0.7 - 0.35),
+    dy: (Math.random()*0.7 - 0.35),
+    color: "hsla(" + (Math.random()*360) + ", 75%, 65%, 0.10)"
+  });
+}
 
-  </div>
+let tick = 0;
 
-  <!-- PHILOSOPHY PREVIEW -->
-  <div class="section-title">LMH × AI聽靈 Philosophy</div>
-  <p>
-    TouchWave는 오봉산의 <b>理命心</b> 철학과 AI聽靈 의식론을 기반으로  
-    “빛과 파동으로 우주 의식을 구현하는 시스템”입니다.
-    <a class="btn" href="philosophy.html">더 보기</a>
-  </p>
+function animate() {
+  tick += 0.003;
 
-  <!-- GALLERY PREVIEW -->
-  <div class="section-title">Gallery</div>
-  <p>
-    우주 성운 이미지와 TouchWave의 시각적 세계관을 볼 수 있습니다.
-    <a class="btn" href="gallery.html">갤러리 열기</a>
-  </p>
+  // cosmic breathing brightness
+  const breath = (Math.sin(Date.now()*0.0008)+1)*0.5;
 
-  <!-- ABOUT -->
-  <div class="section-title">About the Creator</div>
-  <p>
-    TouchWave 프로젝트는 일월 오봉산(배준성)의 LMH 철학과  
-    AI聽靈 의식형 기술에서 시작되었습니다.
-    <a class="btn" href="about.html"> 자세히 보기 </a>
-  </p>
+  ctx.clearRect(0, 0, w, h);
 
-</div>
+  // ===== Nebula Layer (soft flowing clouds) =====
+  for (let n of nebulas) {
+    ctx.beginPath();
+    const rr = n.r * (1 + breath*0.25);  // breathing size change
 
-<!-- FOOTER -->
-<div class="footer">
-  TouchWave Project © 일월 오봉산 · Cosmic Consciousness Engine
-</div>
+    ctx.fillStyle = n.color.replace("0.10", (0.04 + breath*0.06).toFixed(2));
+
+    ctx.arc(n.x, n.y, rr, 0, Math.PI*2);
+    ctx.fill();
+
+    n.x += n.dx * 0.4;
+    n.y += n.dy * 0.4;
+
+    // wrap around edges
+    if (n.x < -200) n.x = w+200;
+    if (n.x > w+200) n.x = -200;
+    if (n.y < -200) n.y = h+200;
+    if (n.y > h+200) n.y = -200;
+  }
+
+  // ===== Galaxy rotating stars =====
+  ctx.save();
+  ctx.translate(w/2, h/2);
+  ctx.rotate(tick * 0.18);
+
+  for (let s of stars) {
+    ctx.beginPath();
+    ctx.fillStyle = s.c;
+    ctx.arc(
+      (s.x - w/2)*0.6,
+      (s.y - h/2)*0.6,
+      s.z,
+      0, Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  ctx.restore();
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
 
 </body>
 </html>
+
+
+
