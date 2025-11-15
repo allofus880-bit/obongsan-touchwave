@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave v5.1 — Quantum NebulaWave</title>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+  }
+</style>
+</head>
+
+<body>
+<canvas id="nebula"></canvas>
+<canvas id="touchCanvas"></canvas>
+
+<script>
+// =============================
+// 화면 크기 설정
+// =============================
+const nebulaCanvas = document.getElementById("nebula");
+const nebCtx = nebulaCanvas.getContext("2d");
+
+const canvas = document.getElementById("touchCanvas");
+const ctx = canvas.getContext("2d");
+
+let W, H;
+
+function resize() {
+  W = nebulaCanvas.width  = canvas.width  = window.innerWidth;
+  H = nebulaCanvas.height = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// =============================
+// 🌌 NEBULA (성운) 쉐이딩 레이어
+// =============================
+let t = 0;
+
+// Perlin Noise 대신 빠른 pseudo-noise
+function noise(x, y, t) {
+  return (
+    Math.sin(x * 0.003 + t * 0.0008) +
+    Math.sin(y * 0.004 + t * 0.001) +
+    Math.sin((x + y) * 0.002 + t * 0.0006)
+  ) * 0.33 + 0.5;
+}
+
+function drawNebula() {
+  const img = nebCtx.getImageData(0, 0, W, H);
+  const d = img.data;
+
+  let i = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const n = noise(x, y, t);
+
+      // 보라 → 청록 → 청백 계열 성운
+      const r = n * 180;
+      const g = n * 90 + 40;
+      const b = n * 255;
+
+      d[i++] = r;
+      d[i++] = g;
+      d[i++] = b;
+      d[i++] = 60; // 투명 성운 레이어
+    }
+  }
+
+  nebCtx.putImageData(img, 0, 0);
+  t += 1;
+}
+
+// =============================
+// ✨ 은하 Dust 레이어 (반짝이는 별)
+// =============================
+const stars = [];
+for (let i = 0; i < 250; i++) {
+  stars.push({
+    x: Math.random() * innerWidth,
+    y: Math.random() * innerHeight,
+    r: Math.random() * 1.2,
+    alpha: Math.random()
+  });
+}
+
+function drawStars() {
+  stars.forEach(s => {
+    s.alpha += (Math.random() * 0.1 - 0.05);
+    if (s.alpha < 0.1) s.alpha = 0.1;
+    if (s.alpha > 1) s.alpha = 1;
+
+    nebCtx.beginPath();
+    nebCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    nebCtx.fillStyle = `rgba(255,255,255,${s.alpha})`;
+    nebCtx.fill();
+  });
+}
+
+// =============================
+// 🔷 BASIC 프랙탈(기본 TouchWave 효과)
+// =============================
+let fractals = [];
+
+function createFractal(x, y) {
+  const branches = 6 + Math.floor(Math.random() * 6);
+  const hue = 150 + Math.random() * 150;
+
+  for (let i = 0; i < branches; i++) {
+    const angle = (Math.PI * 2 / branches) * i;
+    fractals.push({
+      x,
+      y,
+      angle,
+      len: 0,
+      alpha: 1,
+      hue,
+      speed: 2 + Math.random() * 2,
+      branchAngle: angle + (Math.random() * 0.7 - 0.35)
+    });
+  }
+}
+
+function tap(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+  createFractal(x, y);
+}
+
+canvas.addEventListener("click", tap);
+canvas.addEventListener("touchstart", tap);
+
+// =============================
+// 메인 애니메이션
+// =============================
+function animate() {
+  // 배경 성운
+  drawNebula();
+  drawStars();
+
+  // 프랙탈 라인
+  ctx.clearRect(0, 0, W, H);
+
+  fractals.forEach((f, i) => {
+    f.len += f.speed;
+    f.alpha -= 0.008;
+
+    const x2 = f.x + Math.cos(f.branchAngle) * f.len;
+    const y2 = f.y + Math.sin(f.branchAngle) * f.len;
+
+    ctx.beginPath();
+    ctx.moveTo(f.x, f.y);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = `hsla(${f.hue + f.len * 0.2}, 100%, 70%, ${f.alpha})`;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // 미니 브랜치
+    if (f.len > 20 && f.len % 10 < 1) {
+      const subAngle = f.branchAngle + (Math.random() * 1 - 0.5);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 + Math.cos(subAngle) * 12,
+        y2 + Math.sin(subAngle) * 12
+      );
+      ctx.strokeStyle = `hsla(${f.hue + 40}, 100%, 80%, ${f.alpha * 0.7})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    if (f.alpha <= 0) fractals.splice(i, 1);
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
