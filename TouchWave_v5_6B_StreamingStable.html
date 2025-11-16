@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TouchWave v5.6B — Streaming Stable Edition</title>
+
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: "Noto Sans KR", sans-serif;
+    color: #d8f7ff;
+  }
+
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid #55a;
+    color: #d8f7ff;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<input id="fileInput" type="file" multiple accept="audio/*" />
+
+<script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+
+<script>
+/* ============================
+   기본 Three.js 설정
+============================ */
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+camera.position.z = 38;
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* ============================
+   별 필드
+============================ */
+const starGeo = new THREE.BufferGeometry();
+const starCnt = 12000;
+const starPos = new Float32Array(starCnt * 3);
+for (let i = 0; i < starCnt * 3; i++) {
+  starPos[i] = (Math.random() - 0.5) * 500;
+}
+starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+let starMat = new THREE.PointsMaterial({
+  size: 1.0,
+  opacity: 0.9,
+  transparent: true,
+  color: 0xffffff
+});
+let stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+/* ============================
+   코어
+============================ */
+let coreGeo = new THREE.SphereGeometry(6, 64, 64);
+let coreMat = new THREE.MeshBasicMaterial({
+  color: 0x88aaff,
+  transparent: true,
+  opacity: 1.0
+});
+let core = new THREE.Mesh(coreGeo, coreMat);
+scene.add(core);
+
+/* ============================
+   터널
+============================ */
+let tunnelGeo = new THREE.CylinderGeometry(14, 2, 150, 64, 1, true);
+let tunnelMat = new THREE.MeshBasicMaterial({
+  color: 0x3355ff,
+  transparent: true,
+  opacity: 0.25,
+  side: THREE.BackSide
+});
+let tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
+tunnel.rotation.x = Math.PI / 2;
+tunnel.position.z = -20;
+scene.add(tunnel);
+
+/* ============================
+   오디오 분석기
+============================ */
+let audioContext;
+let analyser;
+let sourceNode;
+let filesList = [];
+let currentIndex = 0;
+
+async function playAudio(index) {
+  let file = filesList[index];
+  if (!file) return;
+
+  const arrayBuffer = await file.arrayBuffer();
+
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  if (sourceNode) sourceNode.stop();
+
+  sourceNode = audioContext.createBufferSource();
+  sourceNode.buffer = audioBuffer;
+
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 1024;
+
+  sourceNode.connect(analyser);
+  analyser.connect(audioContext.destination);
+
+  sourceNode.start();
+
+  sourceNode.onended = () => {
+    currentIndex++;
+    if (currentIndex >= filesList.length) currentIndex = 0;
+    playAudio(currentIndex);
+  };
+}
+
+/* ============================
+   파일 선택 이벤트
+============================ */
+document.getElementById("fileInput").addEventListener("change", (e) => {
+  filesList = [...e.target.files];
+  currentIndex = 0;
+
+  // 파일 선택 후 버튼 숨김
+  document.getElementById("fileInput").style.display = "none";
+
+  playAudio(0);
+});
+
+/* ============================
+   애니메이션
+============================ */
+function animate(t) {
+  requestAnimationFrame(animate);
+
+  let tt = t * 0.001;
+
+  stars.rotation.y += 0.0002;
+  tunnel.rotation.z += 0.0008;
+
+  let col = new THREE.Color(
+    Math.sin(tt * 0.7) * 0.5 + 0.5,
+    Math.sin(tt * 0.7 + 2) * 0.5 + 0.5,
+    Math.sin(tt * 0.7 + 4) * 0.5 + 0.5
+  );
+  coreMat.color = col;
+  starMat.color = col;
+  tunnelMat.color = col;
+
+  let pulse = 1.0 + Math.sin(tt * 2.0) * 0.08;
+  core.scale.set(pulse, pulse, pulse);
+
+  if (analyser) {
+    let data = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(data);
+    let avg = data.reduce((a, b) => a + b) / data.length;
+    tunnel.scale.set(1, 1 + avg * 0.004, 1);
+  }
+
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+</body>
+</html>
