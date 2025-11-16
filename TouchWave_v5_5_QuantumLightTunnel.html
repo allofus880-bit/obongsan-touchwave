@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TouchWave v5.5 — Quantum Light Tunnel (Safe Edition)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TouchWave v5.5.1 — Quantum Light Tunnel (Compatibility Fix)</title>
 
 <style>
   html, body {
@@ -11,233 +11,163 @@
     overflow: hidden;
     background: #000;
     font-family: "Noto Sans KR", sans-serif;
+    color: #d8f7ff;
   }
 
   #fileInput {
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
+    top: 20px; left: 20px;
     z-index: 20;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid #88ccff;
     padding: 8px 14px;
-    border-radius: 8px;
     color: #d8f7ff;
-    cursor: pointer;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #5af;
+    border-radius: 8px;
   }
 </style>
 </head>
 
 <body>
 
-<input type="file" id="fileInput" accept="audio/*" multiple />
+<input id="fileInput" type="file" accept="audio/*" multiple />
 
-<!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
 <script>
-/* =====================================================
-   오디오 세팅 (Safe)
-===================================================== */
-let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let analyser = audioCtx.createAnalyser();
-analyser.fftSize = 256;
-let sourceNode = null;
+/* ======================================================
+   Global Variables
+====================================================== */
+let scene, camera, renderer, stars, tunnel, audio, audioCtx, analyser;
+let dataArray;
 
-let playlist = [];
-let currentTrack = 0;
+/* ======================================================
+   Initialize WebGL Scene
+====================================================== */
+function initScene() {
+  scene = new THREE.Scene();
 
-document.getElementById("fileInput").addEventListener("change", function(evt){
-  playlist = Array.from(evt.target.files);
-  currentTrack = 0;
+  camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+  camera.position.z = 35;
 
-  document.getElementById("fileInput").style.display = "none";
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
 
-  playNextSafe();
-});
+  /* Force Render First Frame (Fix: black screen) */
+  renderer.render(scene, camera);
 
-function playNextSafe(){
-  if (playlist.length === 0) return;
+  /* Galaxy Stars */
+  const geo = new THREE.BufferGeometry();
+  const count = 15000;
+  const pos = new Float32Array(count * 3);
 
-  let file = playlist[currentTrack];
-  let reader = new FileReader();
+  for (let i = 0; i < count * 3; i++) {
+    pos[i] = (Math.random() - 0.5) * 500;
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
 
-  reader.onload = (e) => {
-    let arrayBuffer = e.target.result;
-
-    audioCtx.decodeAudioData(arrayBuffer).then(decoded => {
-      if (sourceNode) {
-        try { sourceNode.stop(); } catch(e){}
-      }
-      sourceNode = audioCtx.createBufferSource();
-      sourceNode.buffer = decoded;
-      sourceNode.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      sourceNode.start();
-
-      sourceNode.onended = () => {
-        currentTrack++;
-        if (currentTrack >= playlist.length) currentTrack = 0;
-        playNextSafe();
-      };
-    });
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-/* =====================================================
-   3D Scene
-===================================================== */
-let scene = new THREE.Scene();
-let camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, 0.1, 3000);
-camera.position.z = 5;
-
-let renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(devicePixelRatio);
-document.body.appendChild(renderer.domElement);
-
-/* =====================================================
-   Quantum Tunnel
-===================================================== */
-let tunnelGroup = new THREE.Group();
-scene.add(tunnelGroup);
-
-let tunnelGeo = new THREE.CylinderGeometry(15, 15, 200, 64, 120, true);
-tunnelGeo.scale(1,1,-1);
-
-let tunnelMat = new THREE.MeshBasicMaterial({
-  color: 0x3344ff,
-  transparent: true,
-  opacity: 0.32,
-  side: THREE.BackSide
-});
-
-let tunnelMesh = new THREE.Mesh(tunnelGeo, tunnelMat);
-tunnelGroup.add(tunnelMesh);
-
-/* =====================================================
-   Core
-===================================================== */
-let core = new THREE.Mesh(
-  new THREE.SphereGeometry(1.5, 64, 64),
-  new THREE.MeshBasicMaterial({
-    color: 0x7799ff,
+  const mat = new THREE.PointsMaterial({
+    size: 1.2,
+    color: 0xffffff,
     transparent: true,
-    opacity: 0.95
-  })
-);
-scene.add(core);
-
-/* =====================================================
-   Pulse Rings
-===================================================== */
-let rings = [];
-for (let i=0;i<2;i++){
-  let ring = new THREE.Mesh(
-    new THREE.RingGeometry(2, 2.4, 128),
-    new THREE.MeshBasicMaterial({
-      color: 0x88aaff,
-      transparent: true,
-      opacity: 0.6,
-      side: THREE.DoubleSide
-    })
-  );
-  ring.rotation.x = Math.PI/2;
-  ring.position.z = -i*3;
-  rings.push(ring);
-  scene.add(ring);
-}
-
-/* =====================================================
-   Spark Particles
-===================================================== */
-let sparkGeo = new THREE.BufferGeometry();
-let sparkCount = 2000;
-let sparkPos = new Float32Array(sparkCount*3);
-
-for (let i=0;i<sparkCount*3;i++){
-  sparkPos[i] = (Math.random() - 0.5) * 60;
-}
-
-sparkGeo.setAttribute("position", new THREE.BufferAttribute(sparkPos,3));
-
-let sparkMat = new THREE.PointsMaterial({
-  color: 0xffffff,
-  size: 0.6,
-  transparent: true,
-  opacity: 0.9
-});
-
-let sparks = new THREE.Points(sparkGeo, sparkMat);
-scene.add(sparks);
-
-/* =====================================================
-   색상 엔진
-===================================================== */
-function spectrumColor(t){
-  return new THREE.Color(
-    Math.sin(t*0.3)*0.5+0.5,
-    Math.sin(t*0.3+2)*0.5+0.5,
-    Math.sin(t*0.3+4)*0.5+0.5
-  );
-}
-
-/* =====================================================
-   터치/포인터 회전
-===================================================== */
-let rotateY = 0;
-addEventListener("pointermove", (e)=>{
-  let x = e.clientX / innerWidth;
-  rotateY = (x - 0.5) * 0.25;
-});
-
-/* =====================================================
-   Animation
-===================================================== */
-function animate(t){
-  requestAnimationFrame(animate);
-  let tt = t*0.001;
-
-  /* 오디오 분석 */
-  let freqData = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(freqData);
-  let freq = 0;
-  for(let i=0;i<freqData.length;i++) freq += freqData[i];
-  freq /= freqData.length;
-  if (!isFinite(freq)) freq = 0;
-
-  /* 색상 */
-  let col = spectrumColor(tt + freq*0.01);
-  core.material.color.copy(col);
-  tunnelMat.color.copy(col);
-  sparkMat.color.copy(col);
-
-  /* 터널 이동 */
-  tunnelGroup.position.z -= 0.25 + freq*0.002;
-  if (tunnelGroup.position.z < -100) tunnelGroup.position.z = 0;
-
-  /* 회전 */
-  tunnelGroup.rotation.y += rotateY*0.07;
-
-  /* Pulse Rings */
-  rings.forEach((ring,i)=>{
-    let s = 1 + Math.sin(tt*3+i)*0.2 + freq*0.002;
-    ring.scale.set(s,s,s);
-    ring.material.opacity = 0.35 + Math.sin(tt*4+i)*0.25;
+    opacity: 0.85
   });
+
+  stars = new THREE.Points(geo, mat);
+  scene.add(stars);
+
+  /* Light Tunnel */
+  const tunnelGeo = new THREE.TorusGeometry(14, 4.5, 32, 200);
+  const tunnelMat = new THREE.MeshBasicMaterial({
+    color: 0x6688ff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.35
+  });
+  tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
+  scene.add(tunnel);
+
+  /* WebGL Context Restore Handler */
+  renderer.domElement.addEventListener("webglcontextlost", (e) => {
+    alert("WebGL context lost — 재시작합니다.");
+    e.preventDefault();
+  });
+
+  renderer.domElement.addEventListener("webglcontextrestored", () => {
+    initScene();
+  });
+}
+
+/* ======================================================
+   Audio + Analyzer Setup
+====================================================== */
+function initAudio(file) {
+  audio = new Audio(URL.createObjectURL(file));
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+
+  const src = audioCtx.createMediaElementSource(audio);
+  src.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  analyser.fftSize = 1024;
+  let bufferLength = analyser.frequencyBinCount;
+  dataArray = new Uint8Array(bufferLength);
+
+  audio.play();
+}
+
+/* ======================================================
+   Animation Loop
+====================================================== */
+function animate(t) {
+  requestAnimationFrame(animate);
+
+  let tt = t * 0.001;
+
+  stars.rotation.y += 0.0003;
+  stars.rotation.x += 0.00015;
+
+  tunnel.rotation.z += 0.003;
+  tunnel.rotation.x = Math.sin(tt * 0.3) * 0.25;
+
+  if (analyser) {
+    analyser.getByteFrequencyData(dataArray);
+    let bass = dataArray[1] / 255;
+
+    tunnel.scale.set(1 + bass * 0.5, 1 + bass * 0.5, 1 + bass * 0.5);
+
+    let col = new THREE.Color(
+      0.5 + Math.sin(tt * 1.3) * 0.5,
+      0.5 + Math.sin(tt * 1.3 + 2) * 0.5,
+      0.5 + Math.sin(tt * 1.3 + 4) * 0.5
+    );
+    tunnel.material.color = col;
+  }
 
   renderer.render(scene, camera);
 }
-
 animate();
 
-/* =====================================================
+/* ======================================================
+   File Selection (Start)
+====================================================== */
+document.getElementById("fileInput").addEventListener("change", (e) => {
+  let file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById("fileInput").style.display = "none";
+
+  initAudio(file);
+});
+
+/* ======================================================
    Resize
-===================================================== */
-addEventListener("resize", ()=>{
+====================================================== */
+addEventListener("resize", () => {
+  if (!renderer) return;
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
@@ -246,3 +176,5 @@ addEventListener("resize", ()=>{
 
 </body>
 </html>
+
+
