@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>TouchWave v5.6 — Quantum Light Tunnel (Cache-Bypass Edition)</title>
+
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: "Noto Sans KR", sans-serif;
+    color: #d8f7ff;
+  }
+
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #88ccff;
+    background: rgba(0,0,0,0.65);
+    color: #d8f7ff;
+    cursor: pointer;
+  }
+
+  #status {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    opacity: 0.75;
+    z-index: 15;
+  }
+</style>
+</head>
+
+<body>
+
+<input id="fileInput" type="file" accept="audio/*" />
+<div id="status">TouchWave v5.6 — Quantum Light Tunnel Ready</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+<script>
+/* ======================================================
+   기본 Three.js 장면
+====================================================== */
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1500);
+camera.position.z = 40;
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* 첫 렌더 (검은 화면 방지) */
+renderer.render(scene, camera);
+
+/* ======================================================
+   별 필드
+====================================================== */
+const starGeo = new THREE.BufferGeometry();
+const starCount = 15000;
+const starPos = new Float32Array(starCount * 3);
+
+for (let i = 0; i < starCount * 3; i++) {
+  starPos[i] = (Math.random() - 0.5) * 700;
+}
+
+starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+
+const starMat = new THREE.PointsMaterial({
+  size: 1.0,
+  opacity: 0.85,
+  transparent: true,
+  color: 0xffffff
+});
+
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+/* ======================================================
+   Quantum Light Tunnel Geometry
+====================================================== */
+const tunnelGeo = new THREE.TorusGeometry(17, 5, 32, 240);
+const tunnelMat = new THREE.MeshBasicMaterial({
+  color: 0x6699ff,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.45
+});
+const tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
+scene.add(tunnel);
+
+const coreGeo = new THREE.SphereGeometry(3, 64, 64);
+const coreMat = new THREE.MeshBasicMaterial({
+  color: 0x88aaff,
+  transparent: true,
+  opacity: 0.95
+});
+const core = new THREE.Mesh(coreGeo, coreMat);
+scene.add(core);
+
+/* ======================================================
+   오디오 초기화
+====================================================== */
+let audioEl = new Audio();
+let audioCtx = null;
+let analyser = null;
+let dataArray = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (!analyser) {
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+  }
+}
+
+document.getElementById("fileInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById("status").textContent = "오디오 로딩 중...";
+
+  initAudio();
+
+  const url = URL.createObjectURL(file);
+  audioEl.src = url;
+  audioEl.load();
+
+  try {
+    await audioCtx.resume();
+  } catch {}
+
+  if (!audioEl._linked) {
+    const src = audioCtx.createMediaElementSource(audioEl);
+    src.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    audioEl._linked = true;
+  }
+
+  audioEl.play().then(() => {
+    document.getElementById("fileInput").style.display = "none";
+    document.getElementById("status").textContent = file.name + " 재생 중";
+  }).catch(() => {
+    document.getElementById("status").textContent = "화면을 터치해 주세요";
+  });
+});
+
+/* ======================================================
+   색상 스펙트럼
+====================================================== */
+function spectrumColor(t) {
+  return new THREE.Color(
+    0.55 + Math.sin(t * 0.5) * 0.45,
+    0.55 + Math.sin(t * 0.5 + 2) * 0.45,
+    0.55 + Math.sin(t * 0.5 + 4) * 0.45
+  );
+}
+
+/* ======================================================
+   애니메이션
+====================================================== */
+let rotX = 0, rotY = 0;
+addEventListener("pointermove", (e) => {
+  rotY = ((e.clientX / innerWidth) - 0.5) * 0.3;
+  rotX = ((e.clientY / innerHeight) - 0.5) * 0.2;
+});
+
+function animate(t) {
+  requestAnimationFrame(animate);
+
+  const tt = t * 0.001;
+
+  stars.rotation.y += 0.00025;
+
+  tunnel.rotation.y += 0.002 + rotY * 0.03;
+  tunnel.rotation.x = Math.sin(tt * 0.3) * 0.25 + rotX;
+
+  const pulse = 1 + Math.sin(tt * 2.5) * 0.1;
+  core.scale.set(pulse, pulse, pulse);
+
+  let avg = 0;
+  if (analyser && dataArray) {
+    analyser.getByteFrequencyData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+    avg = sum / dataArray.length;
+  }
+
+  const col = spectrumColor(tt + (avg / 255) * 2);
+  tunnel.material.color.copy(col);
+  core.material.color.copy(col);
+  starMat.color.copy(col);
+
+  const ts = 1 + (avg / 255) * 0.6;
+  tunnel.scale.set(ts, ts, ts);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* 리사이즈 */
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+</body>
+</html>
