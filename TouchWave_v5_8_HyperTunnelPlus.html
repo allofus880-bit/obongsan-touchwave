@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v5.8 — HyperTunnel Plus</title>
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    padding: 8px 14px;
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid #66aaff;
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+<script>
+/* ============================
+   Basic Scene
+============================ */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* ============================
+   Hyper Tunnel Geometry
+============================ */
+const tunnelGeo = new THREE.TorusGeometry(10, 3.8, 64, 180);
+let tunnelMat = new THREE.MeshPhongMaterial({
+  color: 0x3355ff,
+  emissive: 0x112244,
+  shininess: 80,
+  wireframe: false,
+  transparent: true,
+  opacity: 0.8
+});
+const tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
+scene.add(tunnel);
+
+/* Hyper Depth Layer */
+const depthGeo = new THREE.TorusGeometry(13.5, 3.5, 64, 180);
+let depthMat = new THREE.MeshBasicMaterial({
+  color: 0x113355,
+  transparent: true,
+  opacity: 0.3
+});
+const depthLayer = new THREE.Mesh(depthGeo, depthMat);
+scene.add(depthLayer);
+
+/* Lights */
+let light = new THREE.PointLight(0x88bbff, 2, 200);
+light.position.set(0, 10, 10);
+scene.add(light);
+
+scene.add(new THREE.AmbientLight(0x334466));
+
+/* ============================
+   Audio Analyzer
+============================ */
+let audio, audioCtx, analyser, data;
+
+function loadAudio(files) {
+  if (!audioCtx) audioCtx = new AudioContext();
+
+  const file = files[0];
+  const src = URL.createObjectURL(file);
+
+  if (audio) audio.pause();
+
+  audio = new Audio();
+  audio.src = src;
+  audio.crossOrigin = "anonymous";
+  audio.load();
+  audio.play();
+
+  const track = audioCtx.createMediaElementSource(audio);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  data = new Uint8Array(analyser.frequencyBinCount);
+
+  track.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  document.getElementById("fileInput").style.display = "none";
+}
+
+document.getElementById("fileInput").addEventListener("change", (e) => {
+  loadAudio(e.target.files);
+});
+
+/* ============================
+   Animation
+============================ */
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (analyser) {
+    analyser.getByteFrequencyData(data);
+
+    let bass = data[1] / 255;
+    let mid = data[32] / 255;
+    let high = data[120] / 255;
+
+    /* 터널 회전 */
+    tunnel.rotation.x += 0.003 + bass * 0.01;
+    tunnel.rotation.y += 0.004;
+
+    /* 깊이 레이어 흐름 */
+    depthLayer.rotation.x -= 0.002;
+    depthLayer.rotation.z += bass * 0.02;
+
+    /* 색상 변화 */
+    tunnelMat.color.setHSL(0.6 + high * 0.4, 0.8, 0.6);
+    depthMat.color.setHSL(0.55 + mid * 0.4, 0.6, 0.25);
+  }
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* Resize */
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+</body>
+</html>
