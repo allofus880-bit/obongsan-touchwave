@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v6.9 — Neural Pulse Layer</title>
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #66aaff;
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+<canvas id="tunnel"></canvas>
+
+<script>
+/* ============================================================
+   Canvas Setup
+============================================================ */
+const canvas=document.getElementById("tunnel");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+/* ============================================================
+   Audio System
+============================================================ */
+let audioCtx, analyser, dataArray, audio=null, playlist=[], index=0;
+
+function play(idx){
+  if(!playlist.length)return;
+  index = idx % playlist.length;
+  const file = playlist[index];
+
+  if(!audioCtx) audioCtx=new AudioContext();
+  if(audio) audio.pause();
+
+  audio=new Audio();
+  audio.src=URL.createObjectURL(file);
+  audio.load();
+  audio.play();
+
+  const src=audioCtx.createMediaElementSource(audio);
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+
+  dataArray=new Uint8Array(analyser.frequencyBinCount);
+
+  src.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  audio.onended=()=>{ index++; play(index); };
+
+  document.getElementById("fileInput").style.display="none";
+}
+
+document.getElementById("fileInput").addEventListener("change",e=>{
+  playlist=[...e.target.files];
+  index=0;
+  play(0);
+});
+
+/* ============================================================
+   TouchWave v6.9 — Neural Pulse Logic
+============================================================ */
+let t=0;
+
+/* Neural Memory (layer traces) */
+let neuralMemory = new Array(42).fill(0);
+
+/* Burst Memory */
+let burstPower = 0;
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const w=canvas.width, h=canvas.height;
+  const cx=w/2, cy=h/2;
+
+  const layers=42;
+  const base=Math.min(w,h)*0.42;
+
+  const hueBase=(t*0.25)%360;
+
+  /* ---- Parse Audio ---- */
+  let bass=0, mid=0, high=0;
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+    bass=(dataArray[1]/255)*1.5;
+    mid =(dataArray[40]/255)*1.8;
+    high=(dataArray[120]/255)*2.5;
+  }
+
+  /* Neural Spark (random electric spike) */
+  let spark = (Math.random() < high*0.02) ? high*40 : 0;
+  let sparkTriggered = spark > 0;
+
+  /* Neural Sync Burst (global reaction) */
+  if(bass > 1.2 && high > 1.0){
+    burstPower = 30 + high*30;
+  }
+  burstPower *= 0.90;
+
+  /* Update Neural Memory */
+  for(let i=0;i<layers;i++){
+    neuralMemory[i] *= 0.90;
+  }
+  if(sparkTriggered){
+    neuralMemory[Math.floor(Math.random()*layers)] += high*20;
+  }
+
+  /* Neural Flow Field */
+  let flowTime = t*0.011 + mid*0.22;
+  let microSpeed = 0.05 + high*0.12;
+
+  for(let i=0;i<layers;i++){
+    let depth = i / layers;
+    let movingDepth = (depth + flowTime) % 1;
+
+    /* Axon Pulse (신경 축상 이동) */
+    let axonPulse = Math.sin(t*0.12 + depth*15) * high * 12;
+
+    /* Neural drift + micro signals */
+    let microWave = Math.sin(t * microSpeed + depth*14) * (2 + high*5);
+
+    /* Memory Echo */
+    let memoryEcho = neuralMemory[i];
+
+    /* Sync burst 적용 */
+    let syncBurst = burstPower * (1 - movingDepth);
+
+    /* Final radius */
+    let radius = base*(1-movingDepth);
+
+    radius +=
+      axonPulse +
+      microWave +
+      memoryEcho +
+      syncBurst +
+      spark * (1-depth);
+
+    if(radius < 0.1) radius = 0.1;
+
+    /* ---- Color ---- */
+    let hueShift=Math.sin(t*0.02 + movingDepth*4)*80;
+    let hue=(hueBase + movingDepth*280 + hueShift + burstPower*1.5) % 360;
+
+    let luma=65 - movingDepth*45 + memoryEcho*0.4 + spark*0.2;
+
+    ctx.strokeStyle=`hsla(${hue},90%,${luma}%,${1-movingDepth})`;
+    ctx.lineWidth=3*(1-movingDepth);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* ---- Neural Core ---- */
+  let corePulse = mid*2.0 + high*1.2 + burstPower*0.3;
+
+  let coreR = 24 + corePulse*22;
+  if(coreR < 1) coreR = 1;
+
+  let coreHue = (hueBase + 200 + high*50 + burstPower) % 360;
+  let coreLight = 70 + corePulse*40;
+
+  ctx.fillStyle=`hsla(${coreHue},95%,${coreLight}%,0.97)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
