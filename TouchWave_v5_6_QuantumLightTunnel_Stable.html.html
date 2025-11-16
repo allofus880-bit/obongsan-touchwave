@@ -1,0 +1,209 @@
+<!-- TouchWave v5.6.1 — 오봉산 안정화판 (OrbitControls 제거 / 커스텀 회전)
+     - THREE.js 최신 CDN
+     - 커스텀 마우스 회전 로직 (OrbitControls 의존성 제거)
+     - WebGL Crash 방어
+     - AudioContext + Analyser 기반 오디오 반응
+     - 로컬 오디오 업로드 기반 Quantum Light Tunnel
+-->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TouchWave v5.6.1 — Quantum Light Tunnel (오봉산 안정화판)</title>
+
+  <!-- THREE.js CDN (안정화 버전) -->
+  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      font-family: sans-serif;
+    }
+    #uploadBox {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.45);
+      border-radius: 8px;
+      color: white;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 13px;
+    }
+    #uploadBox input[type="file"] {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="uploadBox">
+    <div style="margin-bottom:4px; font-weight:600; font-size:12px;">TouchWave v5.6.1 — Quantum Light Tunnel</div>
+    <div style="margin-bottom:6px; font-size:11px; opacity:0.8;">오디오 파일을 선택하면, 빛의 터널이 소리에 반응합니다.</div>
+    <input type="file" id="audioFile" accept="audio/*" />
+  </div>
+
+  <script>
+    let scene, camera, renderer;
+    let core, tunnel, ring1, ring2, sparks;
+    let audioCtx, analyser, dataArray;
+    let targetRotX = 0, targetRotY = 0;
+
+    // 초기화
+    init();
+    animate();
+
+    function init() {
+      // ----- 기본 Three.js 설정 -----
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 2000);
+      camera.position.z = 2;
+
+      try {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+      } catch (e) {
+        alert('WebGL을 초기화할 수 없습니다. 브라우저 설정 또는 드라이버를 확인해주세요.');
+        return;
+      }
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const light = new THREE.AmbientLight(0xffffff, 1);
+      scene.add(light);
+
+      // ----- 중심 코어 -----
+      const coreGeo = new THREE.SphereGeometry(1.5, 64, 64);
+      const coreMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x222222 });
+      core = new THREE.Mesh(coreGeo, coreMat);
+      scene.add(core);
+
+      // ----- 터널 -----
+      const tunnelGeo = new THREE.CylinderGeometry(15, 15, 200, 64, 120, true);
+      tunnelGeo.scale(1, 1, -1); // 안쪽에서 보는 구조
+      const tunnelMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        opacity: 0.28,
+        transparent: true,
+        side: THREE.BackSide,
+      });
+      tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
+      tunnel.position.z = -20;
+      scene.add(tunnel);
+
+      // ----- 링 -----
+      const ringGeo = new THREE.RingGeometry(2, 2.4, 128);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
+      ring1 = new THREE.Mesh(ringGeo, ringMat);
+      ring2 = new THREE.Mesh(ringGeo, ringMat.clone());
+      ring2.scale.set(1.3, 1.3, 1.3);
+      scene.add(ring1);
+      scene.add(ring2);
+
+      // ----- 스파크(입자) -----
+      const sparkGeo = new THREE.BufferGeometry();
+      const positions = new Float32Array(2000 * 3);
+      for (let i = 0; i < 2000; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 80;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
+      }
+      sparkGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const sparkMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true });
+      sparks = new THREE.Points(sparkGeo, sparkMat);
+      scene.add(sparks);
+
+      // ----- 오디오 로더 -----
+      document.getElementById('audioFile').addEventListener('change', loadAudio);
+
+      // ----- 창 크기 변화 -----
+      window.addEventListener('resize', onResize);
+
+      // ----- 커스텀 마우스 회전 (OrbitControls 대체) -----
+      window.addEventListener('pointermove', (e) => {
+        const x = e.clientX / window.innerWidth - 0.5;
+        const y = e.clientY / window.innerHeight - 0.5;
+        targetRotY = x * 0.6; // 좌우 회전
+        targetRotX = y * 0.3; // 상하 회전
+      });
+    }
+
+    function loadAudio(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        audioCtx.decodeAudioData(ev.target.result).then((buffer) => {
+          const src = audioCtx.createBufferSource();
+          src.buffer = buffer;
+          src.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          src.start(0);
+        }).catch((err) => {
+          console.error('오디오 디코딩 오류:', err);
+          alert('오디오 파일을 해석하는 중 문제가 발생했습니다. 다른 파일을 시도해 보세요.');
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function spectrumColor(t) {
+      return new THREE.Color(
+        Math.sin(t * 0.3) * 0.5 + 0.5,
+        Math.sin(t * 0.3 + 2) * 0.5 + 0.5,
+        Math.sin(t * 0.3 + 4) * 0.5 + 0.5
+      );
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const t = performance.now() * 0.001;
+
+      let freq = 0;
+      if (analyser && dataArray) {
+        analyser.getByteFrequencyData(dataArray);
+        freq = dataArray.reduce((a, b) => a + b, 0) / dataArray.length || 0;
+      }
+
+      // ----- 색상 변화 -----
+      const c = spectrumColor(t + freq * 0.01);
+      core.material.color = c;
+      ring1.material.color = c;
+      ring2.material.color = c;
+      tunnel.material.color = c;
+      sparks.material.color = c;
+
+      // ----- 링 / 터널 동작 -----
+      const s = 1 + freq * 0.003;
+      ring1.scale.set(s, s, s);
+      ring2.scale.set(s * 1.3, s * 1.3, s * 1.3);
+      tunnel.position.z = -20 - freq * 0.02;
+
+      // ----- 장면 회전 (마우스 기반 목표 각도에 부드럽게 수렴) -----
+      scene.rotation.y += (targetRotY - scene.rotation.y) * 0.05;
+      scene.rotation.x += (targetRotX - scene.rotation.x) * 0.05;
+
+      renderer.render(scene, camera);
+    }
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+  </script>
+</body>
+</html>
