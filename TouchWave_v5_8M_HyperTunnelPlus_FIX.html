@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v5.8M — HyperTunnelPlus FIX (Multi)</title>
+
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid #55aaff;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+<!-- 여러 곡 선택 가능 -->
+<input type="file" id="fileInput" accept="audio/*" multiple />
+<canvas id="tunnel"></canvas>
+
+<script>
+/* ===============================
+   Canvas 기본 설정
+================================ */
+const canvas = document.getElementById("tunnel");
+const ctx = canvas.getContext("2d");
+resizeCanvas();
+
+window.addEventListener("resize", resizeCanvas);
+
+function resizeCanvas() {
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+
+/* ===============================
+   오디오 분석 (멀티 파일 재생)
+================================ */
+let audioCtx, analyser, dataArray;
+let audio = null;
+let filesList = [];
+let currentIndex = 0;
+
+function playIndex(idx) {
+  if (!filesList.length) return;
+  if (idx < 0 || idx >= filesList.length) idx = 0;
+  currentIndex = idx;
+
+  const file = filesList[currentIndex];
+  if (!file) return;
+
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  // 이전 오디오 정리
+  if (audio) {
+    audio.pause();
+    audio = null;
+  }
+
+  audio = new Audio();
+  audio.src = URL.createObjectURL(file);
+  audio.crossOrigin = "anonymous";
+  audio.load();
+  audio.play();
+
+  const track = audioCtx.createMediaElementSource(audio);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  track.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  // 한 곡 끝나면 다음 곡으로, 마지막 곡이면 다시 처음으로
+  audio.onended = () => {
+    currentIndex++;
+    if (currentIndex >= filesList.length) currentIndex = 0;
+    playIndex(currentIndex);
+  };
+
+  // 파일선택 버튼 숨기기 (방송용)
+  const fi = document.getElementById("fileInput");
+  if (fi) fi.style.display = "none";
+}
+
+document.getElementById("fileInput").addEventListener("change", (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+
+  filesList = files;
+  currentIndex = 0;
+  playIndex(0);
+});
+
+/* ===============================
+   HyperTunnel 시각 효과 설정
+================================ */
+let t = 0;
+
+function drawTunnel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  const layers = 38;                 // 터널 레이어 수
+  const radiusBase = Math.min(w, h) * 0.45;
+
+  let bass = 0;
+
+  if (analyser && dataArray) {
+    analyser.getByteFrequencyData(dataArray);
+    bass = dataArray[0] / 255;      // 저역대 평균
+  }
+
+  for (let i = 0; i < layers; i++) {
+    const depth = i / layers;
+    const pulse = Math.sin(t * 0.05 + depth * 4) * 0.15 + 1.0;
+
+    let radius = radiusBase * (1 - depth) * pulse;
+
+    // 음악 반응: 깊이 감 + 흔들림
+    radius *= (1 + bass * 0.5 * depth);
+
+    const hue = (t * 0.3 + depth * 200) % 360;
+    ctx.strokeStyle = `hsla(${hue}, 80%, 60%, ${1 - depth})`;
+    ctx.lineWidth = 3 * (1 - depth);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  t++;
+  requestAnimationFrame(drawTunnel);
+}
+drawTunnel();
+</script>
+
+</body>
+</html>
