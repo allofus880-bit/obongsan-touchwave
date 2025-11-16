@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v6.8 — Somatic Flow Layer</title>
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #66aaff;
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+<canvas id="tunnel"></canvas>
+
+<script>
+/* ============================================================
+   Canvas Setup
+============================================================ */
+const canvas=document.getElementById("tunnel");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+/* ============================================================
+   Audio Core
+============================================================ */
+let audioCtx, analyser, dataArray, audio=null, playlist=[], index=0;
+
+function play(idx){
+  if(!playlist.length)return;
+  index = idx % playlist.length;
+  const file = playlist[index];
+
+  if(!audioCtx) audioCtx=new AudioContext();
+  if(audio) audio.pause();
+
+  audio=new Audio();
+  audio.src=URL.createObjectURL(file);
+  audio.load();
+  audio.play();
+
+  const src=audioCtx.createMediaElementSource(audio);
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+
+  dataArray=new Uint8Array(analyser.frequencyBinCount);
+
+  src.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  audio.onended=()=>{ index++; play(index); };
+
+  document.getElementById("fileInput").style.display="none";
+}
+
+document.getElementById("fileInput").addEventListener("change",e=>{
+  playlist=[...e.target.files];
+  index=0;
+  play(0);
+});
+
+/* ============================================================
+   TouchWave v6.8 — Somatic Flow Logic
+============================================================ */
+
+let t=0;
+let rippleMemory=new Array(42).fill(0);
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const w=canvas.width, h=canvas.height;
+  const cx=w/2, cy=h/2;
+
+  const layers=42;
+  const base=Math.min(w,h)*0.42;
+
+  const hueBase=(t*0.25)%360;
+
+  /* ---- Parse Audio ---- */
+  let bass=0, mid=0, high=0;
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+    bass=(dataArray[1]/255)*1.5;
+    mid =(dataArray[40]/255)*1.9;
+    high=(dataArray[120]/255)*2.4;
+  }
+
+  /* ---- Conscious Breath ---- */
+  let breathPhase=(Math.sin(t*0.01)+1)/2;
+  let inhale = Math.pow(breathPhase,1.4);
+  let exhale = Math.pow(1-breathPhase,1.4);
+  let breath = inhale - exhale;
+
+  let breathScale = 1 + breath * 0.30;
+
+  /* ---- Somatic Sync (감각 동기화) ---- */
+  let somaticSync = Math.sin(t*0.02 + bass*0.25) * 22;
+
+  /* ---- Directional Flow (방향성 흐름) ---- */
+  let direction = Math.sin(t*0.004) * mid * 40;
+
+  /* ---- Somatic Drift (감각 유동) ---- */
+  function somaticDrift(depth){
+    return Math.sin(t*0.006 + depth*5) * (breath*30 + mid*10);
+  }
+
+  /* ---- Skin-Surface Noise (피부 노이즈) ---- */
+  function skinNoise(){
+    return (Math.random()-0.5) * high * 6;
+  }
+
+  /* ---- Resonance Ripple ---- */
+  for(let i=0;i<layers;i++){
+    rippleMemory[i] *= 0.92;
+  }
+  if(bass > 1.0){
+    rippleMemory[Math.floor(Math.random()*layers)] = bass*40;
+  }
+
+  let flowTime = t*0.0095 + mid*0.25;
+  let microSpeed = 0.04 + high*0.10;
+
+  for(let i=0;i<layers;i++){
+    let depth = i / layers;
+    let movingDepth = (depth + flowTime) % 1;
+
+    /* ---- 파동 요소 합성 ---- */
+    let drift = somaticDrift(depth);
+    let noise = skinNoise();
+    let ripple = rippleMemory[i];
+
+    let awarenessWave =
+      Math.sin(t*0.018 + depth*(3+high*2)) * (high*15);
+
+    let microWave =
+      Math.sin(t * microSpeed + depth * 12) * (2 + high*4);
+
+    /* ---- RADIUS 계산 ---- */
+    let radius = base*(1-movingDepth)*breathScale;
+
+    radius *= 1
+      + bass*movingDepth*0.8
+      + inhale*0.15
+      + exhale*0.10;
+
+    radius +=
+        drift      +
+        direction  +
+        noise      +
+        ripple     +
+        awarenessWave +
+        microWave  +
+        somaticSync * depth;
+
+    if(radius < 0.1) radius = 0.1;
+
+    /* ---- COLOR ---- */
+    let hueShift=Math.sin(t*0.02 + movingDepth*3)*60;
+    let hue=(hueBase + movingDepth*260 + hueShift + somaticSync)*0.7 % 360;
+
+    let luma=60 - movingDepth*40 + breath*18 + ripple*0.15;
+
+    ctx.strokeStyle=`hsla(${hue},82%,${luma}%,${1-movingDepth})`;
+    ctx.lineWidth=3*(1-movingDepth);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* ---- CORE ---- */
+  let corePulse = mid*2.0 + breath*1.4;
+  let coreR = 22 + corePulse*20 + high*10;
+  if(coreR<1) coreR=1;
+
+  let coreHue = (hueBase + 180 + high*40 + somaticSync) % 360;
+  let coreLight = 65 + corePulse*40;
+
+  ctx.fillStyle=`hsla(${coreHue},95%,${coreLight}%,0.96)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
