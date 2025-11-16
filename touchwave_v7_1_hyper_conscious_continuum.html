@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v7.1 — Hyper-Conscious Continuum</title>
+
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 8px 14px;
+    z-index: 10;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #66aaff;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+<canvas id="continuum"></canvas>
+
+<script>
+/* ============================================================
+   Canvas Setup
+============================================================ */
+const canvas = document.getElementById("continuum");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+/* ============================================================
+   Audio Core
+============================================================ */
+let audioCtx, analyser, dataArray, audio=null, playlist=[], index=0;
+
+function play(idx){
+  if(!playlist.length) return;
+
+  index = idx % playlist.length;
+  const file = playlist[index];
+
+  if(!audioCtx) audioCtx = new AudioContext();
+  if(audio) audio.pause();
+
+  audio = new Audio();
+  audio.src = URL.createObjectURL(file);
+  audio.load();
+  audio.play();
+
+  const src = audioCtx.createMediaElementSource(audio);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  src.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  audio.onended = () => { index++; play(index); };
+
+  document.getElementById("fileInput").style.display = "none";
+}
+
+document.getElementById("fileInput").addEventListener("change", e=>{
+  playlist = [...e.target.files];
+  index = 0;
+  play(0);
+});
+
+/* ============================================================
+   TouchWave v7.1 — Hyper-Conscious Continuum Engine
+============================================================ */
+
+let t = 0;
+
+/* Quantum Threads (양자 실선) */
+let threads = [];
+function addThread(){
+  threads.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    len: 10 + Math.random()*20,
+    life: 20 + Math.random()*20,
+    angle: Math.random()*Math.PI*2,
+    width: 0.6 + Math.random()*1.0
+  });
+}
+
+/* Continuum Field Memory */
+let continuumMemory = new Array(42).fill(0);
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const w = canvas.width, h = canvas.height;
+  const cx = w/2, cy = h/2;
+
+  const layers = 42;
+  const base = Math.min(w,h) * 0.42;
+
+  const hueBase = (t*0.22) % 360;
+
+  /* ---- Parse Audio ---- */
+  let bass=0, mid=0, high=0;
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+    bass = (dataArray[1]/255)*1.4;
+    mid  = (dataArray[40]/255)*1.9;
+    high = (dataArray[120]/255)*2.6;
+  }
+
+  /* ---- Conscious Breath ---- */
+  let breathPhase = (Math.sin(t*0.01)+1)/2;
+  let inhale  = Math.pow(breathPhase,1.5);
+  let exhale  = Math.pow(1-breathPhase,1.5);
+  let breath  = inhale - exhale;
+  let breathScale = 1 + breath * 0.30;
+
+  /* ---- Awareness ---- */
+  let awareness = high * 0.6 + mid * 0.4;
+
+  /* ---- Meta-Awareness Pulse ---- */
+  let metaPulse = Math.sin(t*0.008 + awareness*0.3) * (awareness*25);
+
+  /* ---- Continuum Memory ---- */
+  for(let i=0;i<layers;i++){
+    continuumMemory[i] *= 0.93;
+  }
+  if(high > 1.1){
+    continuumMemory[Math.floor(Math.random()*layers)] += high*20;
+  }
+
+  /* ---- Quantum Thread Trigger ---- */
+  if(Math.random() < high*0.015){
+    addThread();
+  }
+  threads.forEach(th => th.life -= 1);
+  threads = threads.filter(th => th.life > 0);
+
+  /* ---- Dimensional Flow ---- */
+  let flowTime = t*0.009 + mid*0.22;
+  let microSpeed = 0.04 + high*0.10;
+
+  for(let i=0;i<layers;i++){
+    let depth = i/layers;
+    let movingDepth = (depth + flowTime) % 1;
+
+    /* Continuum Harmonics (Soft-Fractal) */
+    let harmonic =
+      Math.sin(t*0.014 + depth*6) * (mid*12) +
+      Math.sin(t*0.003 + depth*10) * (high*7);
+
+    let dimensionalFlow =
+      Math.sin(t*0.006 + depth*8) * (breath*28 + mid*12);
+
+    let microWave =
+      Math.sin(t*microSpeed + depth*14) * (2 + high*4);
+
+    let continuumEcho = continuumMemory[i];
+
+    /* Final Radius */
+    let radius = base*(1-movingDepth)*breathScale;
+    radius += harmonic + microWave + dimensionalFlow + continuumEcho + metaPulse*depth;
+
+    if(radius < 0.1) radius = 0.1;
+
+    /* Color */
+    let hueShift = Math.sin(t*0.02 + movingDepth*4)*70;
+    let hue = (hueBase + movingDepth*260 + hueShift + awareness*40) % 360;
+
+    let luma = 60 - movingDepth*40 + breath*18 + continuumEcho*0.12;
+
+    ctx.strokeStyle = `hsla(${hue},88%,${luma}%,${1-movingDepth})`;
+    ctx.lineWidth = 3*(1-movingDepth);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* ---- Quantum Threads (render) ---- */
+  threads.forEach(th=>{
+    ctx.strokeStyle = `hsla(${hueBase+180},100%,70%,${th.life/40})`;
+    ctx.lineWidth = th.width;
+    ctx.beginPath();
+    ctx.moveTo(th.x, th.y);
+    ctx.lineTo(th.x + Math.cos(th.angle)*th.len,
+               th.y + Math.sin(th.angle)*th.len);
+    ctx.stroke();
+  });
+
+  /* ---- Core ---- */
+  let corePulse = mid*2.0 + high*1.3 + breath*1.2 + metaPulse*0.2;
+  let coreR = 26 + corePulse*22;
+  if(coreR < 1) coreR = 1;
+
+  let coreHue = (hueBase + 200 + high*40) % 360;
+  let coreLight = 70 + corePulse*40;
+
+  ctx.fillStyle = `hsla(${coreHue},95%,${coreLight}%,0.97)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
