@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>TouchWave v5.5.1 — Quantum Light Tunnel (Compatibility Fix)</title>
+<title>TouchWave v5.5 — Quantum Light Tunnel (Reset Edition)</title>
 
 <style>
   html, body {
@@ -16,158 +16,228 @@
 
   #fileInput {
     position: fixed;
-    top: 20px; left: 20px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 20;
     padding: 8px 14px;
-    color: #d8f7ff;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid #5af;
     border-radius: 8px;
+    border: 1px solid #88ccff;
+    background: rgba(0,0,0,0.6);
+    color: #d8f7ff;
+    cursor: pointer;
+  }
+
+  #status {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    opacity: 0.7;
+    z-index: 15;
   }
 </style>
 </head>
 
 <body>
 
-<input id="fileInput" type="file" accept="audio/*" multiple />
+<input id="fileInput" type="file" accept="audio/*" />
+<div id="status">TouchWave v5.5 — 파일 선택 전에도 우주 화면이 먼저 나와야 정상입니다.</div>
 
+<!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
 <script>
 /* ======================================================
-   Global Variables
+   기본 Three.js 장면 세팅
 ====================================================== */
-let scene, camera, renderer, stars, tunnel, audio, audioCtx, analyser;
-let dataArray;
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+camera.position.z = 40;
+
+let renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* 항상 첫 프레임 그리기 (검은 화면 방지) */
+renderer.render(scene, camera);
 
 /* ======================================================
-   Initialize WebGL Scene
+   별 필드 (항상 보이는 우주 배경)
 ====================================================== */
-function initScene() {
-  scene = new THREE.Scene();
+const starGeo = new THREE.BufferGeometry();
+const starCount = 12000;
+const starPos = new Float32Array(starCount * 3);
 
-  camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
-  camera.position.z = 35;
+for (let i = 0; i < starCount * 3; i++) {
+  starPos[i] = (Math.random() - 0.5) * 600;
+}
+starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-  renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(devicePixelRatio);
-  document.body.appendChild(renderer.domElement);
+const starMat = new THREE.PointsMaterial({
+  size: 1.1,
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.85
+});
 
-  /* Force Render First Frame (Fix: black screen) */
-  renderer.render(scene, camera);
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
 
-  /* Galaxy Stars */
-  const geo = new THREE.BufferGeometry();
-  const count = 15000;
-  const pos = new Float32Array(count * 3);
+/* ======================================================
+   Quantum Light Tunnel (토러스 형태)
+====================================================== */
+const tunnelGeo = new THREE.TorusGeometry(16, 5, 32, 220);
+const tunnelMat = new THREE.MeshBasicMaterial({
+  color: 0x6688ff,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.45
+});
+const tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
+scene.add(tunnel);
 
-  for (let i = 0; i < count * 3; i++) {
-    pos[i] = (Math.random() - 0.5) * 500;
+/* 중심 코어 */
+const coreGeo = new THREE.SphereGeometry(3.2, 64, 64);
+const coreMat = new THREE.MeshBasicMaterial({
+  color: 0x99bbff,
+  transparent: true,
+  opacity: 0.95
+});
+const core = new THREE.Mesh(coreGeo, coreMat);
+scene.add(core);
+
+/* ======================================================
+   오디오 세팅 (HTMLAudioElement + WebAudio)
+====================================================== */
+let audioEl = new Audio();
+audioEl.loop = false;
+
+let audioCtx = null;
+let analyser = null;
+let dataArray = null;
+
+function setupAudioIfNeeded() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-
-  const mat = new THREE.PointsMaterial({
-    size: 1.2,
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.85
-  });
-
-  stars = new THREE.Points(geo, mat);
-  scene.add(stars);
-
-  /* Light Tunnel */
-  const tunnelGeo = new THREE.TorusGeometry(14, 4.5, 32, 200);
-  const tunnelMat = new THREE.MeshBasicMaterial({
-    color: 0x6688ff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.35
-  });
-  tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
-  scene.add(tunnel);
-
-  /* WebGL Context Restore Handler */
-  renderer.domElement.addEventListener("webglcontextlost", (e) => {
-    alert("WebGL context lost — 재시작합니다.");
-    e.preventDefault();
-  });
-
-  renderer.domElement.addEventListener("webglcontextrestored", () => {
-    initScene();
-  });
-}
-
-/* ======================================================
-   Audio + Analyzer Setup
-====================================================== */
-function initAudio(file) {
-  audio = new Audio(URL.createObjectURL(file));
-
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioCtx.createAnalyser();
-
-  const src = audioCtx.createMediaElementSource(audio);
-  src.connect(analyser);
-  analyser.connect(audioCtx.destination);
-
-  analyser.fftSize = 1024;
-  let bufferLength = analyser.frequencyBinCount;
-  dataArray = new Uint8Array(bufferLength);
-
-  audio.play();
-}
-
-/* ======================================================
-   Animation Loop
-====================================================== */
-function animate(t) {
-  requestAnimationFrame(animate);
-
-  let tt = t * 0.001;
-
-  stars.rotation.y += 0.0003;
-  stars.rotation.x += 0.00015;
-
-  tunnel.rotation.z += 0.003;
-  tunnel.rotation.x = Math.sin(tt * 0.3) * 0.25;
-
-  if (analyser) {
-    analyser.getByteFrequencyData(dataArray);
-    let bass = dataArray[1] / 255;
-
-    tunnel.scale.set(1 + bass * 0.5, 1 + bass * 0.5, 1 + bass * 0.5);
-
-    let col = new THREE.Color(
-      0.5 + Math.sin(tt * 1.3) * 0.5,
-      0.5 + Math.sin(tt * 1.3 + 2) * 0.5,
-      0.5 + Math.sin(tt * 1.3 + 4) * 0.5
-    );
-    tunnel.material.color = col;
+  if (!analyser) {
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
   }
-
-  renderer.render(scene, camera);
 }
-animate();
 
-/* ======================================================
-   File Selection (Start)
-====================================================== */
-document.getElementById("fileInput").addEventListener("change", (e) => {
-  let file = e.target.files[0];
+/* 파일 선택 시 */
+document.getElementById("fileInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
   if (!file) return;
 
-  document.getElementById("fileInput").style.display = "none";
+  document.getElementById("status").textContent = "오디오 로딩 중...";
+  const url = URL.createObjectURL(file);
 
-  initAudio(file);
+  setupAudioIfNeeded();
+
+  try {
+    await audioCtx.resume();
+  } catch (err) {
+    console.log("AudioContext resume error:", err);
+  }
+
+  audioEl.src = url;
+  audioEl.load();
+
+  /* AudioContext와 연결 (한 번만) */
+  if (!audioEl._connected) {
+    const srcNode = audioCtx.createMediaElementSource(audioEl);
+    srcNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    audioEl._connected = true;
+  }
+
+  audioEl.play().then(() => {
+    document.getElementById("status").textContent = "재생 중: " + file.name;
+    document.getElementById("fileInput").style.display = "none";
+  }).catch(err => {
+    document.getElementById("status").textContent = "재생 오류: 화면을 한 번 눌러주세요.";
+    console.log(err);
+  });
 });
 
 /* ======================================================
-   Resize
+   색상 스펙트럼 함수
+====================================================== */
+function spectrumColor(t) {
+  return new THREE.Color(
+    0.5 + Math.sin(t * 0.5) * 0.5,
+    0.5 + Math.sin(t * 0.5 + 2) * 0.5,
+    0.5 + Math.sin(t * 0.5 + 4) * 0.5
+  );
+}
+
+/* 마우스 / 터치에 따른 회전 감도 */
+let rotX = 0;
+let rotY = 0;
+
+addEventListener("pointermove", (e) => {
+  const nx = (e.clientX / innerWidth) - 0.5;
+  const ny = (e.clientY / innerHeight) - 0.5;
+  rotY = nx * 0.3;
+  rotX = ny * 0.2;
+});
+
+/* ======================================================
+   메인 애니메이션 루프
+====================================================== */
+function animate(t) {
+  requestAnimationFrame(animate);
+  const tt = t * 0.001;
+
+  /* 별 필드 회전 */
+  stars.rotation.y += 0.0003;
+  stars.rotation.x += 0.00015;
+
+  /* 터널 기본 회전 */
+  tunnel.rotation.y += 0.002 + rotY * 0.05;
+  tunnel.rotation.x = Math.sin(tt * 0.3) * 0.25 + rotX;
+
+  /* 코어 맥동 */
+  const pulse = 1 + Math.sin(tt * 2.5) * 0.12;
+  core.scale.set(pulse, pulse, pulse);
+
+  /* 오디오가 있을 때만 분석 */
+  let avg = 0;
+  if (analyser && dataArray) {
+    analyser.getByteFrequencyData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+    avg = sum / dataArray.length;           // 0 ~ 255
+  }
+
+  /* 오디오 값 기반으로 반응 (없으면 avg=0) */
+  const bass = avg / 255; // 0 ~ 1
+
+  /* 색상 */
+  const col = spectrumColor(tt + bass * 2.0);
+  tunnel.material.color.copy(col);
+  core.material.color.copy(col);
+  starMat.color.copy(col);
+
+  /* 터널 스케일 변형 (음악에 반응) */
+  const tunnelScale = 1 + bass * 0.6;
+  tunnel.scale.set(tunnelScale, tunnelScale, tunnelScale);
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+/* ======================================================
+   리사이즈 대응
 ====================================================== */
 addEventListener("resize", () => {
-  if (!renderer) return;
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
