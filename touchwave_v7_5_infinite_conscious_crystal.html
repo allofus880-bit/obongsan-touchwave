@@ -1,0 +1,203 @@
+import zipfile
+
+# v7.5 Infinite Conscious Crystal Layer – Full HTML Code
+html_content = """<!DOCTYPE html>
+<html lang='ko'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>TouchWave v7.5 — Infinite Conscious Crystal Layer</title>
+<style>
+  html, body { margin:0; overflow:hidden; background:#000; }
+  #fileInput {
+    position:fixed; top:20px; left:20px; z-index:20;
+    padding:8px 14px; border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid #66aaff; color:#fff;
+    cursor:pointer; font-size:14px;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+<body>
+
+<input type='file' id='fileInput' accept='audio/*' multiple>
+<canvas id='crystal'></canvas>
+
+<script>
+const canvas = document.getElementById("crystal");
+const ctx = canvas.getContext("2d");
+
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener("resize", resize);
+
+let audioCtx, analyser, dataArray, audio=null, playlist=[], index=0;
+function play(i){
+  if(!playlist.length) return;
+  index = i % playlist.length;
+  const file = playlist[index];
+
+  if(!audioCtx) audioCtx = new AudioContext();
+  if(audio) audio.pause();
+
+  audio = new Audio();
+  audio.src = URL.createObjectURL(file);
+  audio.load(); audio.play();
+
+  const src = audioCtx.createMediaElementSource(audio);
+
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  src.connect(analyser); analyser.connect(audioCtx.destination);
+  audio.onended = ()=>{ index++; play(index); };
+
+  document.getElementById("fileInput").style.display="none";
+}
+
+document.getElementById("fileInput").addEventListener("change", e=>{
+  playlist=[...e.target.files]; index=0; play(0);
+});
+
+/* ============================================================
+   v7.5 Infinite Conscious Crystal Engine
+============================================================ */
+
+let t = 0;
+
+/* Crystal Nodes */
+let crystalNodes = [];
+function addNode(){
+  crystalNodes.push({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: 4 + Math.random()*8,
+    life: 40 + Math.random()*50
+  });
+}
+
+let crystalMemory = new Array(42).fill(0);
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const w = canvas.width, h = canvas.height;
+  const cx = w/2, cy = h/2;
+
+  const layers = 42;
+  const base = Math.min(w,h)*0.42;
+  const hueBase = (t*0.12) % 360;
+
+  /* Audio Parse */
+  let bass=0, mid=0, high=0;
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+    bass=(dataArray[1]/255)*1.4;
+    mid =(dataArray[40]/255)*2.2;
+    high=(dataArray[120]/255)*3.2;
+  }
+
+  /* Breath */
+  let p=(Math.sin(t*0.01)+1)/2;
+  let breath=Math.pow(p,1.5) - Math.pow(1-p,1.5);
+  let breathScale = 1 + breath*0.30;
+
+  /* Awareness */
+  let awareness = high*0.55 + mid*0.45;
+
+  /* Prism Dispersion (스펙트럼 확산) */
+  let prism = (high*0.6 + mid*0.4) * 90;
+
+  /* Infinite Crystal Memory */
+  for(let i=0;i<layers;i++) crystalMemory[i] *= 0.93;
+  if(high>1.15) crystalMemory[Math.floor(Math.random()*layers)] += high*25;
+
+  /* Crystal Node Spawn */
+  if(Math.random() < high*0.018) addNode();
+  crystalNodes.forEach(n=> n.life--);
+  crystalNodes = crystalNodes.filter(n=> n.life>0);
+
+  /* Main Layer Rendering */
+  let flowTime = t*0.008 + mid*0.25;
+  let microSpeed = 0.03 + high*0.13;
+
+  for(let i=0;i<layers;i++){
+    let depth = i/layers;
+    let md = (depth + flowTime) % 1;
+
+    /* Infinitum Folding */
+    let fold =
+      Math.sin(depth*8 + t*0.014)*awareness*20 +
+      Math.cos(depth*11 + t*0.007)*awareness*14;
+
+    /* Crystal Warping (결정 편향) */
+    let warp =
+      Math.sin(t*0.016 + depth*9)*(bass*20 - high*16);
+
+    /* Recursive Memory */
+    let mem = crystalMemory[i];
+
+    /* Micro Oscillation */
+    let micro = Math.sin(t*microSpeed + depth*14)*(2+high*6);
+
+    let radius = base*(1-md)*breathScale;
+    radius += fold + warp + mem + micro + prism*depth*0.05;
+
+    if(radius < 0.1) radius=0.1;
+
+    /* Color */
+    let hueShift = Math.sin(t*0.02 + md*5)*70;
+    let hue = (hueBase + md*250 + hueShift + prism*0.2) % 360;
+    let luma = 60 - md*36 + breath*18 + mem*0.15;
+
+    ctx.strokeStyle = `hsla(${hue},90%,${luma}%,${1-md})`;
+    ctx.lineWidth = 3*(1-md);
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* Render Crystal Nodes */
+  crystalNodes.forEach(n=>{
+    ctx.fillStyle = `hsla(${hueBase+220},100%,70%,${n.life/80})`;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  /* Crystal Core */
+  let corePulse = mid*2.6 + high*1.5 + breath*1.1 + prism*0.02;
+  let coreR = 32 + corePulse*22;
+  if(coreR<1) coreR=1;
+
+  let coreHue = (hueBase + 240 + high*40) % 360;
+  let coreLight = 75 + corePulse*40;
+
+  ctx.fillStyle = `hsla(${coreHue},95%,${coreLight}%,0.96)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
+"""
+
+# Save HTML
+html_path = "/mnt/data/touchwave_v7_5_infinite_conscious_crystal.html"
+with open(html_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+# Create ZIP
+zip_path = "/mnt/data/touchwave_v7_5_infinite_conscious_crystal.zip"
+with zipfile.ZipFile(zip_path, "w") as z:
+    z.write(html_path, arcname="touchwave_v7_5_infinite_conscious_crystal.html")
+
+zip_path
