@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v6.6 — Field Sync / Conscious Breath</title>
+<style>
+  html, body { margin: 0; overflow: hidden; background: #000; }
+  #fileInput {
+    position: fixed; top: 20px; left: 20px; z-index: 20;
+    padding: 8px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #66aaff; color: #fff;
+    cursor: pointer; backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+<canvas id="tunnel"></canvas>
+
+<script>
+const canvas=document.getElementById("tunnel");
+const ctx=canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize();window.addEventListener("resize",resize);
+
+/* ==== AUDIO SYSTEM ==== */
+let audioCtx, analyser, dataArray, audio=null, playlist=[], index=0;
+
+function play(idx){
+  if(!playlist.length)return;
+  index = idx % playlist.length;
+  const file = playlist[index];
+  if(!audioCtx) audioCtx=new AudioContext();
+  if(audio) audio.pause();
+  audio=new Audio();
+  audio.src=URL.createObjectURL(file);
+  audio.load(); audio.play();
+  const source=audioCtx.createMediaElementSource(audio);
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  dataArray=new Uint8Array(analyser.frequencyBinCount);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  audio.onended=()=>{ index++; play(index); };
+  document.getElementById("fileInput").style.display="none";
+}
+
+document.getElementById("fileInput").addEventListener("change", e=>{
+  playlist=[...e.target.files]; index=0; play(0);
+});
+
+/* ==== V6.6 FIELDSYNC + BREATH ==== */
+let t=0;
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const w=canvas.width, h=canvas.height, cx=w/2, cy=h/2;
+
+  const layers=42;
+  const base=Math.min(w,h)*0.42;
+  const hueBase=(t*0.25)%360;
+
+  /* AUDIO → BASS/MID/HIGH */
+  let bass=0, mid=0, high=0;
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+    bass=(dataArray[1]/255)*1.4;
+    mid =(dataArray[40]/255)*1.7;
+    high=(dataArray[120]/255)*2.3;
+  }
+
+  /* ==== CONSCIOUS BREATH ==== */
+  let breathPhase = (Math.sin(t*0.01) + 1) / 2;   // inhale → exhale → cycle
+  let inhale = Math.pow(breathPhase, 1.5);
+  let exhale = Math.pow(1 - breathPhase, 1.5);
+  let consciousBreath = inhale - exhale;  // -1 ~ +1
+
+  let breathScale = 1 + consciousBreath * 0.28;
+
+  /* ==== FIELD SYNC (전체 장 동기화) ==== */
+  let sync = Math.sin(t*0.015 + bass*0.3);
+  let syncPower = sync * 25;
+
+  let flowTime = t*0.009 + mid*0.22;
+
+  let microSpeed = 0.04 + high*0.09;
+  let viscosity = 1 + bass*0.6;
+
+  for(let i=0;i<layers;i++){
+    let depth=i/layers;
+    let movingDepth=(depth+flowTime)%1;
+
+    /* 기존 파동 움직임 */
+    let microWave = Math.sin(t * microSpeed + depth * 12) * (2 + high*4);
+    let curveShift = Math.sin((t*0.01 + depth*4) * viscosity) * 22;
+
+    /* NEW — Field Sync Phase Shift */
+    let phaseShift = syncPower * depth;
+
+    /* NEW — Awareness wave */
+    let awarenessWave = Math.sin(t*0.02 + depth*(3+high*2)) * (high*16);
+
+    /* RADIUS */
+    let radius = base * (1-movingDepth) * breathScale;
+    radius *= 1
+       + bass * movingDepth * 0.8
+       + inhale * 0.15
+       + exhale * 0.1;
+
+    radius += microWave + curveShift + awarenessWave + phaseShift;
+
+    if (radius < 0.1) radius = 0.1;
+
+    /* 색상 */
+    let hueShift = Math.sin(t*0.02 + movingDepth*3) * 60;
+    let hue = (hueBase + movingDepth*260 + hueShift + sync*40) % 360;
+
+    let luma = 60 - movingDepth*40 + consciousBreath*20;
+
+    ctx.strokeStyle=`hsla(${hue},82%,${luma}%,${1-movingDepth})`;
+    ctx.lineWidth=3*(1-movingDepth);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* CORE */
+  let corePulse = mid*1.9 + consciousBreath*1.4;
+  let coreR = 22 + corePulse*20 + sync*8;
+
+  if (coreR < 1) coreR = 1;
+
+  let coreHue = (hueBase + 190 + high*35 + sync*20) % 360;
+  let coreLight = 65 + corePulse*40;
+
+  ctx.fillStyle=`hsla(${coreHue},95%,${coreLight}%,0.96)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
