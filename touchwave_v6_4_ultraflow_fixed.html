@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v6.4 — UltraFlow Layer (Fixed Edition)</title>
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #66aaff;
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+<canvas id="tunnel"></canvas>
+
+<script>
+/* ============================================================
+   Canvas 설정
+============================================================ */
+const canvas = document.getElementById("tunnel");
+const ctx = canvas.getContext("2d");
+resize();
+window.addEventListener("resize", resize);
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+
+/* ============================================================
+   오디오 시스템
+============================================================ */
+let audioCtx, analyser, dataArray;
+let audio = null;
+let playlist = [];
+let index = 0;
+
+function play(idx){
+  if(!playlist.length) return;
+  index = idx % playlist.length;
+
+  const file = playlist[index];
+
+  if(!audioCtx) audioCtx = new AudioContext();
+  if(audio) audio.pause();
+
+  audio = new Audio();
+  audio.src = URL.createObjectURL(file);
+  audio.load();
+  audio.play();
+
+  const source = audioCtx.createMediaElementSource(audio);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  audio.onended = () => {
+    index++;
+    play(index);
+  };
+
+  document.getElementById("fileInput").style.display = "none";
+}
+
+document.getElementById("fileInput").addEventListener("change", e => {
+  playlist = [...e.target.files];
+  index = 0;
+  play(0);
+});
+
+/* ============================================================
+   TouchWave v6.4 — UltraFlow Layer
+   FIXED VERSION
+============================================================ */
+let t = 0;
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w/2;
+  const cy = h/2;
+
+  let layers = 42;
+  let base = Math.min(w,h) * 0.42;
+  let hueBase = (t * 0.25) % 360;
+
+  /* -----------------------------
+     오디오 분석 (LMH)
+  ----------------------------- */
+  let bass=0, mid=0, high=0;
+
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+
+    bass = (dataArray[1]   /255) * 1.4;
+    mid  = (dataArray[40]  /255) * 1.6;
+    high = (dataArray[120] /255) * 2.0;
+  }
+
+  /* -----------------------------
+     맥박 · 호흡
+  ----------------------------- */
+  let beat  = (Math.sin(t*0.12)*0.5 + 0.5);
+  let deep  = (Math.sin(t*0.02)*0.5 + 0.5);
+  let breath = deep;
+  let breathScale = 1 + breath*0.25;
+
+  /* ============================================================
+     UltraFlow 요소
+============================================================ */
+  let flowTime   = t * 0.008 + mid * 0.2;
+  let microSpeed = 0.04 + high * 0.08;
+  let viscosity  = 1 + bass * 0.5;
+
+  for(let i=0;i<layers;i++){
+    let depth = i / layers;
+    let movingDepth = (depth + flowTime) % 1;
+
+    let microWave = Math.sin(t * microSpeed + depth * 12) * (2 + high*4);
+    let curveShift = Math.sin((t*0.01 + depth*4) * viscosity) * 20;
+
+    let radius = base * (1-movingDepth) * breathScale;
+    radius *= 1
+      + bass * movingDepth * 0.8
+      + beat * 0.2
+      + deep * 0.15;
+
+    radius += microWave + curveShift;
+
+    /* ================================
+       음수 반지름 방지 — FIX 핵심
+    ================================ */
+    if (radius < 0.1) radius = 0.1;
+
+    let hueShift = Math.sin(t*0.02 + movingDepth*3) * 60;
+    let colorPulse = high * 140;
+
+    let hue = (hueBase + movingDepth*240 + hueShift + colorPulse) % 360;
+
+    ctx.strokeStyle = `hsla(${hue},80%,${60-movingDepth*40}%,${1-movingDepth})`;
+    ctx.lineWidth = 3 * (1-movingDepth);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* ============================================================
+     Core Pulse
+============================================================ */
+  let pulse = mid * 1.8;
+
+  let coreR = 22
+            + beat*7
+            + deep*6
+            + pulse*20;
+
+  if (coreR < 1) coreR = 1;
+
+  let luma = 60 + pulse*45 + deep*22;
+  let coreHue = (hueBase + 200 + beat*60 + high*25) % 360;
+
+  ctx.fillStyle = `hsla(${coreHue},95%,${luma}%,0.96)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
