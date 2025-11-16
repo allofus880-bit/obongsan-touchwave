@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TouchWave v6.2 — LMH Response Boost</title>
+<style>
+  html, body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+  }
+  #fileInput {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 20;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid #66aaff;
+    color: #fff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+
+<body>
+<input type="file" id="fileInput" accept="audio/*" multiple>
+<canvas id="tunnel"></canvas>
+
+<script>
+/* ============================================================
+   Canvas 설정
+============================================================ */
+const canvas = document.getElementById("tunnel");
+const ctx = canvas.getContext("2d");
+resize();
+window.addEventListener("resize", resize);
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+
+/* ============================================================
+   오디오 시스템
+============================================================ */
+let audioCtx, analyser, dataArray;
+let audio = null;
+let playlist = [];
+let index = 0;
+
+function play(idx){
+  if(!playlist.length) return;
+  index = idx % playlist.length;
+
+  const file = playlist[index];
+
+  if(!audioCtx) audioCtx = new AudioContext();
+  if(audio) audio.pause();
+
+  audio = new Audio();
+  audio.src = URL.createObjectURL(file);
+  audio.load();
+  audio.play();
+
+  const source = audioCtx.createMediaElementSource(audio);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  audio.onended = () => {
+    index++;
+    play(index);
+  };
+
+  document.getElementById("fileInput").style.display = "none";
+}
+
+document.getElementById("fileInput").addEventListener("change", e => {
+  playlist = [...e.target.files];
+  index = 0;
+  play(0);
+});
+
+/* ============================================================
+   TouchWave v6.2 파동 시스템
+============================================================ */
+let t = 0;
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w/2;
+  const cy = h/2;
+
+  let layers = 42;
+  let base = Math.min(w,h) * 0.42;
+  let hueBase = (t * 0.25) % 360;
+
+  /* -----------------------------
+     오디오 분석 (반응폭 강화)
+  ----------------------------- */
+  let bass=0, mid=0, high=0;
+
+  if(analyser){
+    analyser.getByteFrequencyData(dataArray);
+
+    bass = (dataArray[1]   /255) * 1.4;  // +40%
+    mid  = (dataArray[40]  /255) * 1.6;  // +60%
+    high = (dataArray[120] /255) * 2.0;  // +100% (색 반응 폭발)
+  }
+
+  /* -----------------------------
+     맥박 · 호흡
+  ----------------------------- */
+  let beat  = (Math.sin(t*0.12)*0.5 + 0.5);
+  let deep  = (Math.sin(t*0.02)*0.5 + 0.5);
+  let breath = deep;
+  let breathScale = 1 + breath*0.25;
+
+  /* ============================================================
+     v6.2 Tunnel Pulse + ColorFlow Boost
+  ============================================================= */
+  for(let i=0;i<layers;i++){
+    let depth = i / layers;
+
+    let radius = base * (1-depth) * breathScale;
+    radius *= (1
+      + bass * depth * 0.8   // 더 강한 저음 확장
+      + beat * 0.2           // 빠른 맥박
+      + deep * 0.12          // 느린 호흡
+    );
+
+    // 고음(high) 기반 색상 반응 강화
+    let hueShift = Math.sin(t*0.015 + depth*3) * 50;
+    let colorPulse = high * 120;  // 여기가 핵심 강화
+
+    let hue = (hueBase + depth*220 + hueShift + colorPulse) % 360;
+
+    ctx.strokeStyle = `hsla(${hue},80%,${60-depth*40}%,${1-depth})`;
+    ctx.lineWidth = 3 * (1-depth);
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,radius,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  /* ============================================================
+     v6.2 Core Pulse (심장 반응 강화)
+  ============================================================= */
+  let pulse = mid * 1.8;   // 중음 반응 x1.8
+
+  let coreR = 22
+            + beat*7
+            + deep*5
+            + pulse*18;   // 꽤 크게 확장됨
+
+  let luma = 60 + pulse*40 + deep*20;
+  let coreHue = (hueBase + 180 + beat*50 + high*20) % 360;
+
+  ctx.fillStyle = `hsla(${coreHue},95%,${luma}%,0.95)`;
+  ctx.beginPath();
+  ctx.arc(cx,cy,coreR,0,Math.PI*2);
+  ctx.fill();
+
+  t++;
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
